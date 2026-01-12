@@ -18,6 +18,25 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
   final List<String> users = [];
   DateTime startDate = DateTime.now();
   DateTime dueDate = DateTime.now().add(const Duration(days: 5));
+  int iconCode = Icons.receipt_long.codePoint;
+
+  Future<void> pickDate(bool isStart) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: isStart ? startDate : dueDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          startDate = picked;
+        } else {
+          dueDate = picked;
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +44,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
       appBar: AppBar(title: const Text('New Tracker')),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
+        child: ListView(
           children: [
             TextField(
               controller: titleCtrl,
@@ -38,6 +57,18 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
               decoration: const InputDecoration(
                 labelText: 'Amount (leave empty if variable)',
               ),
+            ),
+            ListTile(
+              title: Text(
+                  'Start: ${startDate.day}/${startDate.month}/${startDate.year}'),
+              trailing: const Icon(Icons.edit_calendar),
+              onTap: () => pickDate(true),
+            ),
+            ListTile(
+              title: Text(
+                  'Due: ${dueDate.day}/${dueDate.month}/${dueDate.year}'),
+              trailing: const Icon(Icons.event),
+              onTap: () => pickDate(false),
             ),
             Row(
               children: [
@@ -62,12 +93,13 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
               ],
             ),
             const SizedBox(height: 8),
-            Expanded(
-              child: ListView(
-                children:
-                    users.map((u) => Text('• $u')).toList(),
-              ),
+            Wrap(
+              spacing: 8,
+              children: users
+                  .map((u) => Chip(label: Text(u)))
+                  .toList(),
             ),
+            const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
                 final box = Hive.box('app');
@@ -81,6 +113,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
                   startDate: startDate,
                   dueDate: dueDate,
                   users: users,
+                  iconCode: iconCode,
                 );
 
                 final all = box.get('trackers', defaultValue: {});
@@ -89,7 +122,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
 
                 Navigator.pop(context);
               },
-              child: const Text('Create'),
+              child: const Text('Create Tracker'),
             )
           ],
         ),

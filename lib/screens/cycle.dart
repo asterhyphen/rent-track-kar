@@ -26,8 +26,8 @@ class _CyclePageState extends State<CyclePage> {
   @override
   void initState() {
     super.initState();
-    final raw = box.get('trackers')[widget.trackerId];
-    tracker = Tracker.fromMap(raw);
+    tracker =
+        Tracker.fromMap(box.get('trackers')[widget.trackerId]);
 
     paid = {for (var u in tracker.users) u: false};
 
@@ -35,9 +35,9 @@ class _CyclePageState extends State<CyclePage> {
     if (saved != null) {
       paid = Map<String, bool>.from(saved['paid']);
       total = saved['total'];
-      if (saved['due'] != null) {
-        due = DateTime.parse(saved['due']);
-      }
+      due = saved['due'] != null
+          ? DateTime.parse(saved['due'])
+          : tracker.dueDate;
     } else {
       total = tracker.amount ?? 0;
       due = tracker.dueDate;
@@ -60,7 +60,7 @@ class _CyclePageState extends State<CyclePage> {
 ${tracker.title}
 
 Total: ₹$total (₹$per each)
-${due != null ? 'Due: ${due!.day}/${due!.month}' : ''}
+Due: ${due!.day}/${due!.month}/${due!.year}
 
 ${tracker.users.map((u) => paid[u]! ? '✅ $u' : '❌ $u').join('\n')}
 ''';
@@ -80,7 +80,7 @@ ${tracker.users.map((u) => paid[u]! ? '✅ $u' : '❌ $u').join('\n')}
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            if (tracker.amount == null && total == 0)
+            if (tracker.amount == null)
               TextField(
                 keyboardType: TextInputType.number,
                 decoration:
@@ -94,26 +94,29 @@ ${tracker.users.map((u) => paid[u]! ? '✅ $u' : '❌ $u').join('\n')}
             Expanded(
               child: ListView(
                 children: tracker.users.map((u) {
-                  return GlassCard(
-                    onTap: allPaid
-                        ? null
-                        : () {
-                            setState(() => paid[u] = !paid[u]!);
-                            persist();
-                          },
-                    child: Row(
-                      children: [
-                        Icon(
-                          paid[u]!
-                              ? Icons.check_circle
-                              : Icons.radio_button_unchecked,
-                          color: paid[u]!
-                              ? Colors.greenAccent
-                              : Colors.white54,
-                        ),
-                        const SizedBox(width: 16),
-                        Text(u),
-                      ],
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: GlassCard(
+                      onTap: allPaid
+                          ? null
+                          : () {
+                              setState(() => paid[u] = !paid[u]!);
+                              persist();
+                            },
+                      child: Row(
+                        children: [
+                          Icon(
+                            paid[u]!
+                                ? Icons.check_circle
+                                : Icons.radio_button_unchecked,
+                            color: paid[u]!
+                                ? Colors.greenAccent
+                                : Colors.white54,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(u),
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
