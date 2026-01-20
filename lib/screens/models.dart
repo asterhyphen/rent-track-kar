@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+String formatName(String input) {
+  if (input.trim().isEmpty) return '';
+  final s = input.trim().toLowerCase();
+  return s[0].toUpperCase() + s.substring(1);
+}
+
 class Tracker {
   final String id;
   final String title;
@@ -30,13 +36,14 @@ class Tracker {
       };
 
   static Tracker fromMap(Map map) => Tracker(
-  id: map['id'],
-  title: map['title'],
-  amount: map['amount'],
-  startDate: DateTime.parse(map['startDate']),
-  dueDate: DateTime.parse(map['dueDate']),
-  users: List<String>.from(map['users']),
-  iconCode: map['icon'] ?? Icons.receipt_long.codePoint,
-);
-
+        id: map['id'],
+        title: formatName(map['title']),
+        amount: map['amount'],
+        startDate: DateTime.parse(map['startDate']),
+        dueDate: DateTime.parse(map['dueDate']),
+        users: List<String>.from(map['users'])
+            .map(formatName)
+            .toList(),
+        iconCode: map['icon'] ?? Icons.receipt_long.codePoint,
+      );
 }
