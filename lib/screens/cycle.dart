@@ -51,19 +51,27 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   String message() {
-    final per = tracker.users.isEmpty
-        ? 0
-        : (total / tracker.users.length).round();
+  final per =
+      tracker.users.isEmpty ? 0 : (total / tracker.users.length).round();
 
-    final paidUsers = tracker.users.where((u) => paid[u] == true).toList()
-      ..sort();
+  final paidUsers = tracker.users
+      .where((u) => paid[u] == true)
+      .toList()
+    ..sort();
 
-    final pendingUsers = tracker.users.where((u) => paid[u] != true).toList()
-      ..sort();
+  final pendingUsers = tracker.users
+      .where((u) => paid[u] != true)
+      .toList()
+    ..sort();
 
-    return '''
+  final now = DateTime.now();
+  final daysRemaining = due!.difference(
+    DateTime(now.year, now.month, now.day),
+  ).inDays;
+
+  return '''
 *_${tracker.title}_*
-_Due:_ ${due!.day}/${due!.month}/${due!.year}
+_Due:_ ${due!.day}/${due!.month}/${due!.year} (${daysRemaining} days remaining)
 _Total:_ ₹$total (₹$per each)
 
 _Paid (${paidUsers.length}; ₹${paidUsers.length * per})_
@@ -76,7 +84,7 @@ _Pending (${pendingUsers.length}; ₹${pendingUsers.length * per})_
 ${pendingUsers.join('\n')}
 ```
 ''';
-  }
+}
 
   @override
   Widget build(BuildContext context) {
