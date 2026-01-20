@@ -38,7 +38,7 @@ class _HomePageState extends State<HomePage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: trackers.isEmpty
-            ? const Center(child: Text('No trackers yet'))
+            ? const Center(child: Text('404 error\nNo trackers found. Click the + icon to create a new tracker'))
             : ListView.builder(
                 itemCount: trackers.length,
                 itemBuilder: (c, i) {

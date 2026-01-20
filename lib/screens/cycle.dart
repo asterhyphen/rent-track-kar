@@ -20,14 +20,12 @@ class _CyclePageState extends State<CyclePage> {
   int total = 0;
   DateTime? due;
 
-  String get monthKey =>
-      '${DateTime.now().year}-${DateTime.now().month}';
+  String get monthKey => '${DateTime.now().year}-${DateTime.now().month}';
 
   @override
   void initState() {
     super.initState();
-    tracker =
-        Tracker.fromMap(box.get('trackers')[widget.trackerId]);
+    tracker = Tracker.fromMap(box.get('trackers')[widget.trackerId]);
 
     paid = {for (var u in tracker.users) u: false};
 
@@ -53,16 +51,30 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   String message() {
-    final per =
-        tracker.users.isEmpty ? 0 : (total / tracker.users.length).round();
+    final per = tracker.users.isEmpty
+        ? 0
+        : (total / tracker.users.length).round();
+
+    final paidUsers = tracker.users.where((u) => paid[u] == true).toList()
+      ..sort();
+
+    final pendingUsers = tracker.users.where((u) => paid[u] != true).toList()
+      ..sort();
 
     return '''
-${tracker.title}
+*_${tracker.title}_*
+_Due:_ ${due!.day}/${due!.month}/${due!.year}
+_Total:_ ₹$total (₹$per each)
 
-Total: ₹$total (₹$per each)
-Due: ${due!.day}/${due!.month}/${due!.year}
+_Paid (${paidUsers.length}; ₹${paidUsers.length * per})_
+```
+${paidUsers.join('\n')}
+```
 
-${tracker.users.map((u) => paid[u]! ? '✅ $u' : '❌ $u').join('\n')}
+_Pending (${pendingUsers.length}; ₹${pendingUsers.length * per})_
+```
+${pendingUsers.join('\n')}
+```
 ''';
   }
 
@@ -83,8 +95,7 @@ ${tracker.users.map((u) => paid[u]! ? '✅ $u' : '❌ $u').join('\n')}
             if (tracker.amount == null)
               TextField(
                 keyboardType: TextInputType.number,
-                decoration:
-                    const InputDecoration(labelText: 'Total'),
+                decoration: const InputDecoration(labelText: 'Total'),
                 onChanged: (v) {
                   total = int.tryParse(v) ?? 0;
                   persist();
