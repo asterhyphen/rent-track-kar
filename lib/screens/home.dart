@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import '../widgets/glass_card.dart';
 import 'cycle.dart';
 import 'models.dart';
-import 'new_tracker.dart';
+import 'tracker.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
