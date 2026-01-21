@@ -20,6 +20,9 @@ class _CyclePageState extends State<CyclePage> {
   int total = 0;
   DateTime? due;
 
+  late TextEditingController totalController;
+  bool editingTotal = false;
+
   String get monthKey => '${DateTime.now().year}-${DateTime.now().month}';
 
   @override
@@ -40,6 +43,14 @@ class _CyclePageState extends State<CyclePage> {
       total = tracker.amount ?? 0;
       due = tracker.dueDate;
     }
+
+    totalController = TextEditingController(text: total.toString());
+  }
+
+  @override
+  void dispose() {
+    totalController.dispose();
+    super.dispose();
   }
 
   void persist() {
@@ -51,25 +62,21 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   String message() {
-  final per =
-      tracker.users.isEmpty ? 0 : (total / tracker.users.length).round();
+    final per =
+        tracker.users.isEmpty ? 0 : (total / tracker.users.length).round();
 
-  final paidUsers = tracker.users
-      .where((u) => paid[u] == true)
-      .toList()
-    ..sort();
+    final paidUsers =
+        tracker.users.where((u) => paid[u] == true).toList()..sort();
 
-  final pendingUsers = tracker.users
-      .where((u) => paid[u] != true)
-      .toList()
-    ..sort();
+    final pendingUsers =
+        tracker.users.where((u) => paid[u] != true).toList()..sort();
 
-  final now = DateTime.now();
-  final daysRemaining = due!.difference(
-    DateTime(now.year, now.month, now.day),
-  ).inDays;
+    final now = DateTime.now();
+    final daysRemaining = due!
+        .difference(DateTime(now.year, now.month, now.day))
+        .inDays;
 
-  return '''
+    return '''
 *_${tracker.title}_*
 _Due:_ ${due!.day}/${due!.month}/${due!.year} (${daysRemaining} days remaining)
 _Total:_ ₹$total (₹$per each)
@@ -84,7 +91,7 @@ _Pending (${pendingUsers.length}; ₹${pendingUsers.length * per})_
 ${pendingUsers.join('\n')}
 ```
 ''';
-}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,11 +109,32 @@ ${pendingUsers.join('\n')}
           children: [
             if (tracker.amount == null)
               TextField(
+                controller: totalController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Total'),
+                readOnly: !editingTotal,
+                decoration: InputDecoration(
+                  labelText: 'Total',
+                  prefixText: '₹ ',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      editingTotal ? Icons.check : Icons.edit,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (editingTotal) {
+                          total = int.tryParse(totalController.text) ?? total;
+                          persist();
+                        }
+                        editingTotal = !editingTotal;
+                      });
+                    },
+                  ),
+                ),
                 onChanged: (v) {
-                  total = int.tryParse(v) ?? 0;
-                  persist();
+                  if (editingTotal) {
+                    total = int.tryParse(v) ?? total;
+                    persist();
+                  }
                 },
               ),
             const SizedBox(height: 12),
