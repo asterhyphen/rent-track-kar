@@ -3,6 +3,16 @@ import 'package:hive/hive.dart';
 import 'models.dart';
 import 'dart:math';
 
+const trackerIcons = {
+  'Bill': Icons.receipt_long,
+  'Electricity': Icons.bolt,
+  'Rent': Icons.home,
+  'Music': Icons.music_note,
+  'Movies': Icons.movie,
+  'Internet': Icons.wifi,
+  'Food': Icons.restaurant,
+};
+
 class NewTrackerPage extends StatefulWidget {
   const NewTrackerPage({super.key});
 
@@ -18,6 +28,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
   final List<String> users = [];
   DateTime startDate = DateTime.now();
   DateTime dueDate = DateTime.now().add(const Duration(days: 5));
+
   int iconCode = Icons.receipt_long.codePoint;
 
   Future<void> pickDate(bool isStart) async {
@@ -29,11 +40,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) {
-          startDate = picked;
-        } else {
-          dueDate = picked;
-        }
+        isStart ? startDate = picked : dueDate = picked;
       });
     }
   }
@@ -48,8 +55,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
           children: [
             TextField(
               controller: titleCtrl,
-              decoration:
-                  const InputDecoration(labelText: 'Tracker name'),
+              decoration: const InputDecoration(labelText: 'Tracker name'),
             ),
             TextField(
               controller: amountCtrl,
@@ -65,8 +71,8 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
               onTap: () => pickDate(true),
             ),
             ListTile(
-              title: Text(
-                  'Due: ${dueDate.day}/${dueDate.month}/${dueDate.year}'),
+              title:
+                  Text('Due: ${dueDate.day}/${dueDate.month}/${dueDate.year}'),
               trailing: const Icon(Icons.event),
               onTap: () => pickDate(false),
             ),
@@ -75,8 +81,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
                 Expanded(
                   child: TextField(
                     controller: userCtrl,
-                    decoration:
-                        const InputDecoration(labelText: 'Add user'),
+                    decoration: const InputDecoration(labelText: 'Add user'),
                   ),
                 ),
                 IconButton(
@@ -95,16 +100,38 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children: users
-                  .map((u) => Chip(label: Text(u)))
-                  .toList(),
+              children: users.map((u) => Chip(label: Text(u))).toList(),
+            ),
+            const SizedBox(height: 16),
+            const Text('Icon'),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 12,
+              children: trackerIcons.entries.map((e) {
+                final selected = iconCode == e.value.codePoint;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      iconCode = e.value.codePoint;
+                    });
+                  },
+                  child: CircleAvatar(
+                    radius: 22,
+                    backgroundColor:
+                        selected ? Theme.of(context).colorScheme.primary : Colors.white12,
+                    child: Icon(
+                      e.value,
+                      color: selected ? Colors.black : Colors.white,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
                 final box = Hive.box('app');
-                final id =
-                    '${titleCtrl.text}_${Random().nextInt(9999)}';
+                final id = '${titleCtrl.text}_${Random().nextInt(9999)}';
 
                 final tracker = Tracker(
                   id: id,

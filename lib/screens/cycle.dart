@@ -67,15 +67,14 @@ class _CyclePageState extends State<CyclePage> {
 
     final paidUsers =
         tracker.users.where((u) => paid[u] == true).toList()..sort();
-
     final pendingUsers =
         tracker.users.where((u) => paid[u] != true).toList()..sort();
 
     final now = DateTime.now();
-    final daysRemaining = due!
-        .difference(DateTime(now.year, now.month, now.day))
-        .inDays;
+    final daysRemaining =
+        due!.difference(DateTime(now.year, now.month, now.day)).inDays;
 
+    // the message
     return '''
 *_${tracker.title}_*
 _Due:_ ${due!.day}/${due!.month}/${due!.year} (${daysRemaining} days remaining)
@@ -98,10 +97,20 @@ ${pendingUsers.join('\n')}
     final allPaid = paid.values.every((e) => e);
 
     return Scaffold(
-      appBar: AppBar(title: Text(tracker.title)),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            Icon(
+              IconData(tracker.iconCode, fontFamily: 'MaterialIcons'),
+            ),
+            const SizedBox(width: 12),
+            Text(tracker.title),
+          ],
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Share.share(message()),
-        label: const Text('Send update'),
+        label: const Text('Share'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -116,13 +125,12 @@ ${pendingUsers.join('\n')}
                   labelText: 'Total',
                   prefixText: '₹ ',
                   suffixIcon: IconButton(
-                    icon: Icon(
-                      editingTotal ? Icons.check : Icons.edit,
-                    ),
+                    icon: Icon(editingTotal ? Icons.check : Icons.edit),
                     onPressed: () {
                       setState(() {
                         if (editingTotal) {
-                          total = int.tryParse(totalController.text) ?? total;
+                          total =
+                              int.tryParse(totalController.text) ?? total;
                           persist();
                         }
                         editingTotal = !editingTotal;
