@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/glass_card.dart';
 import 'models.dart';
-import 'tracker.dart'; // for trackerIcons
+import 'tracker.dart'; 
 
 class CyclePage extends StatefulWidget {
   final String trackerId;
