@@ -13,6 +13,31 @@ const trackerIcons = {
   'Food': Icons.restaurant,
 };
 
+int autoIconFromText(String text) {
+  final t = text.toLowerCase();
+
+  if (RegExp(r'\b(electric|electricity|power|current|bill)\b').hasMatch(t)) {
+    return Icons.bolt.codePoint;
+  }
+  if (RegExp(r'\b(rent|house|home|flat|room)\b').hasMatch(t)) {
+    return Icons.home.codePoint;
+  }
+  if (RegExp(r'\b(wifi|internet|broadband|fiber|network)\b').hasMatch(t)) {
+    return Icons.wifi.codePoint;
+  }
+  if (RegExp(r'\b(music|spotify|song|playlist)\b').hasMatch(t)) {
+    return Icons.music_note.codePoint;
+  }
+  if (RegExp(r'\b(movie|film|cinema|netflix|prime)\b').hasMatch(t)) {
+    return Icons.movie.codePoint;
+  }
+  if (RegExp(r'\b(food|lunch|dinner|meal|restaurant)\b').hasMatch(t)) {
+    return Icons.restaurant.codePoint;
+  }
+
+  return Icons.receipt_long.codePoint;
+}
+
 class NewTrackerPage extends StatefulWidget {
   const NewTrackerPage({super.key});
 
@@ -30,6 +55,28 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
   DateTime dueDate = DateTime.now().add(const Duration(days: 5));
 
   int iconCode = Icons.receipt_long.codePoint;
+  bool iconManuallySelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    titleCtrl.addListener(() {
+      if (!iconManuallySelected) {
+        setState(() {
+          iconCode = autoIconFromText(titleCtrl.text);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    titleCtrl.dispose();
+    amountCtrl.dispose();
+    userCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> pickDate(bool isStart) async {
     final picked = await showDatePicker(
@@ -66,7 +113,8 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
             ),
             ListTile(
               title: Text(
-                  'Start: ${startDate.day}/${startDate.month}/${startDate.year}'),
+                'Start: ${startDate.day}/${startDate.month}/${startDate.year}',
+              ),
               trailing: const Icon(Icons.edit_calendar),
               onTap: () => pickDate(true),
             ),
@@ -94,7 +142,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
                       });
                     }
                   },
-                )
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -113,12 +161,14 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
                   onTap: () {
                     setState(() {
                       iconCode = e.value.codePoint;
+                      iconManuallySelected = true;
                     });
                   },
                   child: CircleAvatar(
                     radius: 22,
-                    backgroundColor:
-                        selected ? Theme.of(context).colorScheme.primary : Colors.white12,
+                    backgroundColor: selected
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.white12,
                     child: Icon(
                       e.value,
                       color: selected ? Colors.black : Colors.white,
@@ -150,7 +200,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
                 Navigator.pop(context);
               },
               child: const Text('Create Tracker'),
-            )
+            ),
           ],
         ),
       ),
