@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/glass_card.dart';
 import 'models.dart';
+import 'tracker.dart'; // for trackerIcons
 
 class CyclePage extends StatefulWidget {
   final String trackerId;
@@ -47,18 +48,53 @@ class _CyclePageState extends State<CyclePage> {
     totalController = TextEditingController(text: total.toString());
   }
 
-  @override
-  void dispose() {
-    totalController.dispose();
-    super.dispose();
-  }
-
   void persist() {
     box.put('${tracker.id}_$monthKey', {
       'paid': paid,
       'total': total,
       'due': due?.toIso8601String(),
     });
+  }
+
+  void persistTracker() {
+    final all = box.get('trackers');
+    all[tracker.id] = tracker.toMap();
+    box.put('trackers', all);
+  }
+
+  void editIcon() {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Wrap(
+          spacing: 16,
+          children: trackerIcons.entries.map((e) {
+            final selected = tracker.iconCode == e.value.codePoint;
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  tracker = tracker.copyWith(
+                    iconCode: e.value.codePoint,
+                  );
+                });
+                persistTracker();
+                Navigator.pop(context);
+              },
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor:
+                    selected ? Theme.of(context).colorScheme.primary : Colors.white12,
+                child: Icon(
+                  e.value,
+                  color: selected ? Colors.black : Colors.white,
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
   }
 
   String message() {
@@ -100,13 +136,17 @@ ${pendingUsers.join('\n')}
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(
-              IconData(tracker.iconCode, fontFamily: 'MaterialIcons'),
-            ),
+            Icon(IconData(tracker.iconCode, fontFamily: 'MaterialIcons')),
             const SizedBox(width: 12),
             Text(tracker.title),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: editIcon,
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Share.share(message()),
@@ -138,12 +178,6 @@ ${pendingUsers.join('\n')}
                     },
                   ),
                 ),
-                onChanged: (v) {
-                  if (editingTotal) {
-                    total = int.tryParse(v) ?? total;
-                    persist();
-                  }
-                },
               ),
             const SizedBox(height: 12),
             Expanded(

@@ -25,6 +25,19 @@ class Tracker {
     required this.iconCode,
   });
 
+  Tracker copyWith({int? iconCode}) {
+  return Tracker(
+    id: id,
+    title: title,
+    amount: amount,
+    startDate: startDate,
+    dueDate: dueDate,
+    users: users,
+    iconCode: iconCode ?? this.iconCode,
+  );
+}
+
+
   Map<String, dynamic> toMap() => {
         'id': id,
         'title': title,
