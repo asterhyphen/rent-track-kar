@@ -3,7 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/glass_card.dart';
 import 'models.dart';
-import 'tracker.dart'; 
+import 'tracker.dart';
 
 class CyclePage extends StatefulWidget {
   final String trackerId;
@@ -62,36 +62,133 @@ class _CyclePageState extends State<CyclePage> {
     box.put('trackers', all);
   }
 
-  void editIcon() {
+  void openEditTracker() {
+    final titleCtrl = TextEditingController(text: tracker.title);
+    final amountCtrl =
+        TextEditingController(text: tracker.amount?.toString() ?? '');
+    final users = List<String>.from(tracker.users);
+    DateTime newDue = due ?? tracker.dueDate;
+    int icon = tracker.iconCode;
+
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (_) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Wrap(
-          spacing: 16,
-          children: trackerIcons.entries.map((e) {
-            final selected = tracker.iconCode == e.value.codePoint;
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  tracker = tracker.copyWith(
-                    iconCode: e.value.codePoint,
-                  );
-                });
-                persistTracker();
-                Navigator.pop(context);
-              },
-              child: CircleAvatar(
-                radius: 24,
-                backgroundColor:
-                    selected ? Theme.of(context).colorScheme.primary : Colors.white12,
-                child: Icon(
-                  e.value,
-                  color: selected ? Colors.black : Colors.white,
-                ),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: StatefulBuilder(
+          builder: (context, setModal) => ListView(
+            shrinkWrap: true,
+            children: [
+              TextField(
+                controller: titleCtrl,
+                decoration:
+                    const InputDecoration(labelText: 'Tracker name'),
               ),
-            );
-          }).toList(),
+
+              if (tracker.amount == null)
+                TextField(
+                  controller: amountCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      const InputDecoration(labelText: 'Amount'),
+                ),
+
+              ListTile(
+                title: Text(
+                  'Due: ${newDue.day}/${newDue.month}/${newDue.year}',
+                ),
+                trailing: const Icon(Icons.event),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: newDue,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (picked != null) {
+                    setModal(() => newDue = picked);
+                  }
+                },
+              ),
+
+              const SizedBox(height: 8),
+              const Text('Users'),
+              Wrap(
+                spacing: 8,
+                children: users
+                    .map(
+                      (u) => Chip(
+                        label: Text(u),
+                        onDeleted: () {
+                          setModal(() => users.remove(u));
+                          paid.remove(u);
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+
+              TextField(
+                decoration: const InputDecoration(labelText: 'Add user'),
+                onSubmitted: (v) {
+                  if (v.isNotEmpty && !users.contains(v)) {
+                    setModal(() => users.add(v));
+                    paid[v] = false;
+                  }
+                },
+              ),
+
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                children: trackerIcons.entries.map((e) {
+                  final selected = icon == e.value.codePoint;
+                  return GestureDetector(
+                    onTap: () => setModal(
+                      () => icon = e.value.codePoint,
+                    ),
+                    child: CircleAvatar(
+                      radius: 22,
+                      backgroundColor: selected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.white12,
+                      child: Icon(
+                        e.value,
+                        color: selected ? Colors.black : Colors.white,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    tracker = tracker.copyWith(
+                      title: titleCtrl.text,
+                      amount: int.tryParse(amountCtrl.text),
+                      dueDate: newDue,
+                      users: users,
+                      iconCode: icon,
+                    );
+                    due = newDue;
+                    total = tracker.amount ?? total;
+                  });
+
+                  persist();
+                  persistTracker();
+                  Navigator.pop(context);
+                },
+                child: const Text('Save changes'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -136,7 +233,8 @@ ${pendingUsers.join('\n')}
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(IconData(tracker.iconCode, fontFamily: 'MaterialIcons')),
+            Icon(IconData(tracker.iconCode,
+                fontFamily: 'MaterialIcons')),
             const SizedBox(width: 12),
             Text(tracker.title),
           ],
@@ -144,7 +242,7 @@ ${pendingUsers.join('\n')}
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: editIcon,
+            onPressed: openEditTracker,
           ),
         ],
       ),
@@ -165,12 +263,14 @@ ${pendingUsers.join('\n')}
                   labelText: 'Total',
                   prefixText: '₹ ',
                   suffixIcon: IconButton(
-                    icon: Icon(editingTotal ? Icons.check : Icons.edit),
+                    icon: Icon(
+                        editingTotal ? Icons.check : Icons.edit),
                     onPressed: () {
                       setState(() {
                         if (editingTotal) {
-                          total =
-                              int.tryParse(totalController.text) ?? total;
+                          total = int.tryParse(
+                                  totalController.text) ??
+                              total;
                           persist();
                         }
                         editingTotal = !editingTotal;
@@ -184,12 +284,14 @@ ${pendingUsers.join('\n')}
               child: ListView(
                 children: tracker.users.map((u) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
+                    padding:
+                        const EdgeInsets.only(bottom: 8),
                     child: GlassCard(
                       onTap: allPaid
                           ? null
                           : () {
-                              setState(() => paid[u] = !paid[u]!);
+                              setState(
+                                  () => paid[u] = !paid[u]!);
                               persist();
                             },
                       child: Row(
@@ -197,7 +299,8 @@ ${pendingUsers.join('\n')}
                           Icon(
                             paid[u]!
                                 ? Icons.check_circle
-                                : Icons.radio_button_unchecked,
+                                : Icons
+                                    .radio_button_unchecked,
                             color: paid[u]!
                                 ? Colors.greenAccent
                                 : Colors.white54,
