@@ -248,6 +248,7 @@ ${pendingUsers.join('\n')}
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Share.share(message()),
+        icon: const Icon(Icons.share),
         label: const Text('Share'),
       ),
       body: Padding(
