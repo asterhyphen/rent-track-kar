@@ -137,7 +137,7 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
                   onPressed: () {
                     if (userCtrl.text.isNotEmpty) {
                       setState(() {
-                        users.add(userCtrl.text);
+                        users.add(formatName(userCtrl.text));
                         userCtrl.clear();
                       });
                     }
