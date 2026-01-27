@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
         onPressed: () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const NewTrackerPage()),
+            MaterialPageRoute(builder: (_) => const TrackerPage()),
           );
           setState(() {});
         },
@@ -59,17 +59,16 @@ class _HomePageState extends State<HomePage> {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('Delete tracker?'),
-                            content:
-                                const Text('This action cannot be undone.'),
+                            content: const Text(
+                              'This action cannot be undone.',
+                            ),
                             actions: [
                               TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(ctx, false),
+                                onPressed: () => Navigator.pop(ctx, false),
                                 child: const Text('Cancel'),
                               ),
                               TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(ctx, true),
+                                onPressed: () => Navigator.pop(ctx, true),
                                 child: const Text('Delete'),
                               ),
                             ],
@@ -89,28 +88,21 @@ class _HomePageState extends State<HomePage> {
                           color: Colors.redAccent,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                        ),
+                        child: const Icon(Icons.delete, color: Colors.white),
                       ),
                       child: GlassCard(
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  CyclePage(trackerId: t.id),
+                              builder: (_) => CyclePage(trackerId: t.id),
                             ),
                           );
                         },
                         child: Row(
                           children: [
                             Icon(
-                              IconData(
-                                t.iconCode,
-                                fontFamily: 'MaterialIcons',
-                              ),
+                              IconData(t.iconCode, fontFamily: 'MaterialIcons'),
                               color: active
                                   ? Colors.greenAccent
                                   : Colors.white70,

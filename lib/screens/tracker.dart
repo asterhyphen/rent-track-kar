@@ -38,14 +38,14 @@ int autoIconFromText(String text) {
   return Icons.receipt_long.codePoint;
 }
 
-class NewTrackerPage extends StatefulWidget {
-  const NewTrackerPage({super.key});
+class TrackerPage extends StatefulWidget {
+  const TrackerPage({super.key});
 
   @override
-  State<NewTrackerPage> createState() => _NewTrackerPageState();
+  State<TrackerPage> createState() => _TrackerPageState();
 }
 
-class _NewTrackerPageState extends State<NewTrackerPage> {
+class _TrackerPageState extends State<TrackerPage> {
   final titleCtrl = TextEditingController();
   final amountCtrl = TextEditingController();
   final userCtrl = TextEditingController();
@@ -119,8 +119,9 @@ class _NewTrackerPageState extends State<NewTrackerPage> {
               onTap: () => pickDate(true),
             ),
             ListTile(
-              title:
-                  Text('Due: ${dueDate.day}/${dueDate.month}/${dueDate.year}'),
+              title: Text(
+                'Due: ${dueDate.day}/${dueDate.month}/${dueDate.year}',
+              ),
               trailing: const Icon(Icons.event),
               onTap: () => pickDate(false),
             ),
