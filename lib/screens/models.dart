@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 
 String formatName(String input) {
   if (input.trim().isEmpty) return '';
-  final s = input.trim().toLowerCase();
-  return s[0].toUpperCase() + s.substring(1);
+  return input
+      .trim()
+      .toLowerCase()
+      .split(RegExp(r'\s+'))
+      .map((w) => w[0].toUpperCase() + w.substring(1))
+      .join(' ');
 }
+
 
 class Tracker {
   final String id;
