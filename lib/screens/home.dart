@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
                           builder: (ctx) => AlertDialog(
                             title: const Text('Delete tracker?'),
                             content: const Text(
-                              'This action cannot be undone.',
+                              'Are you sure you want to delete this tracker? This action is irreversible.',
                             ),
                             actions: [
                               TextButton(
