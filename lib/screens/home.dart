@@ -24,16 +24,18 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Trackers')),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const TrackerPage()),
-          );
-          setState(() {});
-        },
-      ),
+      floatingActionButton: FloatingActionButton.extended(
+  icon: const Icon(Icons.add),
+  label: const Text('Add Tracker'),
+  onPressed: () async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const TrackerPage()),
+    );
+    setState(() {});
+  },
+),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: trackers.isEmpty
