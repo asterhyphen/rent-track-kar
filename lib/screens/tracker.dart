@@ -139,6 +139,9 @@ class _TrackerPageState extends State<TrackerPage> {
                     if (userCtrl.text.isNotEmpty) {
                       setState(() {
                         users.add(formatName(userCtrl.text));
+                        users.sort(
+                          (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
+                        );
                         userCtrl.clear();
                       });
                     }
@@ -190,7 +193,9 @@ class _TrackerPageState extends State<TrackerPage> {
                   amount: int.tryParse(amountCtrl.text),
                   startDate: startDate,
                   dueDate: dueDate,
-                  users: users,
+                  users: List<String>.from(
+                    users,
+                  )..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
                   iconCode: iconCode,
                 );
 

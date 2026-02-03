@@ -31,6 +31,11 @@ class _CyclePageState extends State<CyclePage> {
     super.initState();
     tracker = Tracker.fromMap(box.get('trackers')[widget.trackerId]);
 
+    tracker = tracker.copyWith(
+      users: List<String>.from(tracker.users)
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
+    );
+
     paid = {for (var u in tracker.users) u: false};
 
     final saved = box.get('${tracker.id}_$monthKey');
@@ -64,8 +69,9 @@ class _CyclePageState extends State<CyclePage> {
 
   void openEditTracker() {
     final titleCtrl = TextEditingController(text: tracker.title);
-    final amountCtrl =
-        TextEditingController(text: tracker.amount?.toString() ?? '');
+    final amountCtrl = TextEditingController(
+      text: tracker.amount?.toString() ?? '',
+    );
     final users = List<String>.from(tracker.users);
     DateTime newDue = due ?? tracker.dueDate;
     int icon = tracker.iconCode;
@@ -86,16 +92,14 @@ class _CyclePageState extends State<CyclePage> {
             children: [
               TextField(
                 controller: titleCtrl,
-                decoration:
-                    const InputDecoration(labelText: 'Tracker name'),
+                decoration: const InputDecoration(labelText: 'Tracker name'),
               ),
 
               if (tracker.amount == null)
                 TextField(
                   controller: amountCtrl,
                   keyboardType: TextInputType.number,
-                  decoration:
-                      const InputDecoration(labelText: 'Amount'),
+                  decoration: const InputDecoration(labelText: 'Amount'),
                 ),
 
               ListTile(
@@ -137,8 +141,13 @@ class _CyclePageState extends State<CyclePage> {
                 decoration: const InputDecoration(labelText: 'Add user'),
                 onSubmitted: (v) {
                   if (v.isNotEmpty && !users.contains(v)) {
-                    setModal(() => users.add(v));
-                    paid[v] = false;
+                    setModal(() {
+                      users.add(formatName(v));
+                      users.sort(
+                        (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
+                      );
+                    });
+                    paid[formatName(v)] = false;
                   }
                 },
               ),
@@ -149,9 +158,7 @@ class _CyclePageState extends State<CyclePage> {
                 children: trackerIcons.entries.map((e) {
                   final selected = icon == e.value.codePoint;
                   return GestureDetector(
-                    onTap: () => setModal(
-                      () => icon = e.value.codePoint,
-                    ),
+                    onTap: () => setModal(() => icon = e.value.codePoint),
                     child: CircleAvatar(
                       radius: 22,
                       backgroundColor: selected
@@ -174,7 +181,10 @@ class _CyclePageState extends State<CyclePage> {
                       title: titleCtrl.text,
                       amount: int.tryParse(amountCtrl.text),
                       dueDate: newDue,
-                      users: users,
+                      users: List<String>.from(users)
+                        ..sort(
+                          (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
+                        ),
                       iconCode: icon,
                     );
                     due = newDue;
@@ -195,17 +205,19 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   String message() {
-    final per =
-        tracker.users.isEmpty ? 0 : (total / tracker.users.length).round();
+    final per = tracker.users.isEmpty
+        ? 0
+        : (total / tracker.users.length).round();
 
-    final paidUsers =
-        tracker.users.where((u) => paid[u] == true).toList()..sort();
-    final pendingUsers =
-        tracker.users.where((u) => paid[u] != true).toList()..sort();
+    final paidUsers = tracker.users.where((u) => paid[u] == true).toList()
+      ..sort();
+    final pendingUsers = tracker.users.where((u) => paid[u] != true).toList()
+      ..sort();
 
     final now = DateTime.now();
-    final daysRemaining =
-        due!.difference(DateTime(now.year, now.month, now.day)).inDays;
+    final daysRemaining = due!
+        .difference(DateTime(now.year, now.month, now.day))
+        .inDays;
 
     // the message
     return '''
@@ -233,17 +245,13 @@ ${pendingUsers.join('\n')}
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(IconData(tracker.iconCode,
-                fontFamily: 'MaterialIcons')),
+            Icon(IconData(tracker.iconCode, fontFamily: 'MaterialIcons')),
             const SizedBox(width: 12),
             Text(tracker.title),
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: openEditTracker,
-          ),
+          IconButton(icon: const Icon(Icons.edit), onPressed: openEditTracker),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -264,14 +272,11 @@ ${pendingUsers.join('\n')}
                   labelText: 'Total',
                   prefixText: '₹ ',
                   suffixIcon: IconButton(
-                    icon: Icon(
-                        editingTotal ? Icons.check : Icons.edit),
+                    icon: Icon(editingTotal ? Icons.check : Icons.edit),
                     onPressed: () {
                       setState(() {
                         if (editingTotal) {
-                          total = int.tryParse(
-                                  totalController.text) ??
-                              total;
+                          total = int.tryParse(totalController.text) ?? total;
                           persist();
                         }
                         editingTotal = !editingTotal;
@@ -285,14 +290,12 @@ ${pendingUsers.join('\n')}
               child: ListView(
                 children: tracker.users.map((u) {
                   return Padding(
-                    padding:
-                        const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.only(bottom: 8),
                     child: GlassCard(
                       onTap: allPaid
                           ? null
                           : () {
-                              setState(
-                                  () => paid[u] = !paid[u]!);
+                              setState(() => paid[u] = !paid[u]!);
                               persist();
                             },
                       child: Row(
@@ -300,8 +303,7 @@ ${pendingUsers.join('\n')}
                           Icon(
                             paid[u]!
                                 ? Icons.check_circle
-                                : Icons
-                                    .radio_button_unchecked,
+                                : Icons.radio_button_unchecked,
                             color: paid[u]!
                                 ? Colors.greenAccent
                                 : Colors.white54,
