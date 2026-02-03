@@ -18,7 +18,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final raw = box.get('trackers', defaultValue: {}) as Map;
-    final trackers = raw.values.map((e) => Tracker.fromMap(e)).toList();
+    final trackers = raw.values
+       .map((e) => Tracker.fromMap(e))
+       .toList()
+     ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
 
     final monthKey = '${DateTime.now().year}-${DateTime.now().month}';
 
