@@ -4,6 +4,6 @@ This is an app which helps users track group expenses like rent, electricity bil
 # Features
 - Set fixed amounts for things like rent, spotify subscription
 - Set varying amounts for things like electricity bill
-- Make groups of users
+- Make groups of users (in next release)
 - Send messages directly by clicking share button
 - Set due date and start date

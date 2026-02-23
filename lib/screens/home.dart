@@ -27,111 +27,225 @@ class _HomePageState extends State<HomePage> {
     final monthKey = '${DateTime.now().year}-${DateTime.now().month}';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Trackers')),
+      appBar: AppBar(
+        title: const Text(
+          'Rent Track Kar',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
-  icon: const Icon(Icons.add),
-  label: const Text('Add Tracker'),
-  onPressed: () async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const TrackerPage()),
-    );
-    setState(() {});
-  },
-),
-
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: trackers.isEmpty
-            ? const Center(
-                child: Text(
-                  '404 error\nNo trackers found. Click the + icon to create a new tracker',
-                  textAlign: TextAlign.center,
-                ),
-              )
-            : ListView.builder(
-                itemCount: trackers.length,
-                itemBuilder: (c, i) {
-                  final t = trackers[i];
-                  final active = box.containsKey('${t.id}_$monthKey');
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Dismissible(
-                      key: ValueKey(t.id),
-                      direction: DismissDirection.endToStart,
-                      confirmDismiss: (_) async {
-                        return await showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('Delete tracker?'),
-                            content: const Text(
-                              'Are you sure you want to delete this tracker? This action is irreversible.',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx, false),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx, true),
-                                child: const Text('Delete'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      onDismissed: (_) {
-                        final all = box.get('trackers');
-                        all.remove(t.id);
-                        box.put('trackers', all);
-                        setState(() {});
-                      },
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 24),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(Icons.delete, color: Colors.white),
-                      ),
-                      child: GlassCard(
-                        onTap: () {
-                          Navigator.push(
+        icon: const Icon(Icons.add),
+        label: const Text('Add Tracker'),
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const TrackerPage()),
+          );
+          setState(() {});
+        },
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF111A2B), Color(0xFF090F1B)],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: trackers.isEmpty
+              ? const Center(
+                  child: Text(
+                    'No trackers yet.\nTap Add Tracker to start.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16),
+                  ),
+                )
+              : Column(
+                  children: [
+                    GlassCard(
+                      child: Row(
+                        children: [
+                          _statTile(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => CyclePage(trackerId: t.id),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            Icon(
-                              IconData(t.iconCode, fontFamily: 'MaterialIcons'),
-                              color: active
-                                  ? Colors.greenAccent
-                                  : Colors.white70,
-                              size: 28,
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Text(
-                                t.title,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
+                            label: 'Total',
+                            value: '${trackers.length}',
+                          ),
+                          const SizedBox(width: 12),
+                          _statTile(
+                            context,
+                            label: 'This Month',
+                            value: '${_activeCount(trackers, monthKey)}',
+                          ),
+                          const SizedBox(width: 12),
+                          _statTile(
+                            context,
+                            label: 'Users',
+                            value: '${_userCount(trackers)}',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: trackers.length,
+                        itemBuilder: (c, i) {
+                          final t = trackers[i];
+                          final active = box.containsKey('${t.id}_$monthKey');
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Dismissible(
+                              key: ValueKey(t.id),
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (_) async {
+                                return await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Text('Delete tracker?'),
+                                        content: const Text(
+                                          'Are you sure you want to delete this tracker? This action is irreversible.',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(ctx, false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(ctx, true),
+                                            child: const Text('Delete'),
+                                          ),
+                                        ],
+                                      ),
+                                    ) ??
+                                    false;
+                              },
+                              onDismissed: (_) {
+                                final all = box.get('trackers');
+                                all.remove(t.id);
+                                box.put('trackers', all);
+                                setState(() {});
+                              },
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 24),
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              child: GlassCard(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          CyclePage(trackerId: t.id),
+                                    ),
+                                  );
+                                },
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: active
+                                            ? const Color(0xFF00B894)
+                                            : Colors.white10,
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      child: Icon(
+                                        IconData(
+                                          t.iconCode,
+                                          fontFamily: 'MaterialIcons',
+                                        ),
+                                        color: active
+                                            ? Colors.black
+                                            : Colors.white70,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            t.title,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            active
+                                                ? 'Tracking current month'
+                                                : 'Not started this month',
+                                            style: TextStyle(
+                                              color: active
+                                                  ? const Color(0xFF77FFD8)
+                                                  : Colors.white54,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(Icons.chevron_right),
+                                  ],
                                 ),
                               ),
                             ),
-                            const Icon(Icons.chevron_right),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     ),
-                  );
-                },
-              ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  int _activeCount(List<Tracker> trackers, String monthKey) {
+    return trackers.where((t) => box.containsKey('${t.id}_$monthKey')).length;
+  }
+
+  int _userCount(List<Tracker> trackers) {
+    return trackers.fold<int>(0, (sum, t) => sum + t.users.length);
+  }
+
+  Widget _statTile(
+    BuildContext context, {
+    required String label,
+    required String value,
+  }) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.65),
+            ),
+          ),
+        ],
       ),
     );
   }

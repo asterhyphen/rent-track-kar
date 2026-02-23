@@ -94,122 +94,244 @@ class _TrackerPageState extends State<TrackerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final peopleCount = users.length;
+    final baseAmount = int.tryParse(amountCtrl.text) ?? 0;
+    final perHead = peopleCount == 0 ? 0 : (baseAmount / peopleCount).ceil();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('New Tracker')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            TextField(
-              controller: titleCtrl,
-              decoration: const InputDecoration(labelText: 'Tracker name'),
-            ),
-            TextField(
-              controller: amountCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Amount (leave empty if variable)',
-              ),
-            ),
-            ListTile(
-              title: Text(
-                'Start: ${startDate.day}/${startDate.month}/${startDate.year}',
-              ),
-              trailing: const Icon(Icons.edit_calendar),
-              onTap: () => pickDate(true),
-            ),
-            ListTile(
-              title: Text(
-                'Due: ${dueDate.day}/${dueDate.month}/${dueDate.year}',
-              ),
-              trailing: const Icon(Icons.event),
-              onTap: () => pickDate(false),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: userCtrl,
-                    decoration: const InputDecoration(labelText: 'Add user'),
-                  ),
+      appBar: AppBar(title: const Text('Create Tracker')),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF10192B), Color(0xFF090F1B)],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: [
+              TextField(
+                controller: titleCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Tracker name',
+                  prefixIcon: Icon(Icons.description_outlined),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    if (userCtrl.text.isNotEmpty) {
-                      setState(() {
-                        users.add(formatName(userCtrl.text));
-                        users.sort(
-                          (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
-                        );
-                        userCtrl.clear();
-                      });
-                    }
-                  },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: amountCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Amount (optional)',
+                  prefixIcon: Icon(Icons.currency_rupee),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: users.map((u) => Chip(label: Text(u))).toList(),
-            ),
-            const SizedBox(height: 16),
-            const Text('Icon'),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 12,
-              children: trackerIcons.entries.map((e) {
-                final selected = iconCode == e.value.codePoint;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      iconCode = e.value.codePoint;
-                      iconManuallySelected = true;
-                    });
-                  },
-                  child: CircleAvatar(
-                    radius: 22,
-                    backgroundColor: selected
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.white12,
-                    child: Icon(
-                      e.value,
-                      color: selected ? Colors.black : Colors.white,
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _dateTile(
+                      icon: Icons.calendar_month,
+                      label: 'Start Date',
+                      value:
+                          '${startDate.day}/${startDate.month}/${startDate.year}',
+                      onTap: () => pickDate(true),
                     ),
                   ),
-                );
-              }).toList(),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _dateTile(
+                      icon: Icons.event,
+                      label: 'Due Date',
+                      value: '${dueDate.day}/${dueDate.month}/${dueDate.year}',
+                      onTap: () => pickDate(false),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: userCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Add user',
+                        prefixIcon: Icon(Icons.person_add_alt_1),
+                      ),
+                      onSubmitted: (_) => _addUser(),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton.filled(
+                    icon: const Icon(Icons.add),
+                    onPressed: _addUser,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: users
+                    .map(
+                      (u) => Chip(
+                        label: Text(u),
+                        deleteIcon: const Icon(Icons.close, size: 16),
+                        onDeleted: () => setState(() => users.remove(u)),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Per Head'),
+                    Text(
+                      peopleCount == 0 || baseAmount == 0
+                          ? 'Add amount & users'
+                          : '₹$perHead each',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Pick Icon',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: trackerIcons.entries.map((e) {
+                  final selected = iconCode == e.value.codePoint;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        iconCode = e.value.codePoint;
+                        iconManuallySelected = true;
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        color: selected
+                            ? const Color(0xFF00B894)
+                            : Colors.white.withValues(alpha: 0.08),
+                      ),
+                      child: Icon(
+                        e.value,
+                        color: selected ? Colors.black : Colors.white,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: _createTracker,
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Create Tracker'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _addUser() {
+    if (userCtrl.text.trim().isEmpty) return;
+    final formatted = formatName(userCtrl.text);
+    if (formatted.isEmpty || users.contains(formatted)) {
+      userCtrl.clear();
+      return;
+    }
+
+    setState(() {
+      users.add(formatted);
+      users.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      userCtrl.clear();
+    });
+  }
+
+  Widget _dateTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 16),
+                const SizedBox(width: 6),
+                Text(label, style: const TextStyle(fontSize: 12)),
+              ],
             ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                final box = Hive.box('app');
-                final id = '${titleCtrl.text}_${Random().nextInt(9999)}';
-
-                final tracker = Tracker(
-                  id: id,
-                  title: titleCtrl.text,
-                  amount: int.tryParse(amountCtrl.text),
-                  startDate: startDate,
-                  dueDate: dueDate,
-                  users: List<String>.from(
-                    users,
-                  )..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
-                  iconCode: iconCode,
-                );
-
-                final all = box.get('trackers', defaultValue: {});
-                all[id] = tracker.toMap();
-                box.put('trackers', all);
-
-                Navigator.pop(context);
-              },
-              child: const Text('Create Tracker'),
-            ),
+            const SizedBox(height: 6),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
           ],
         ),
       ),
     );
+  }
+
+  void _createTracker() {
+    final box = Hive.box('app');
+    final id = '${titleCtrl.text}_${Random().nextInt(9999)}';
+
+    final tracker = Tracker(
+      id: id,
+      title: titleCtrl.text,
+      amount: int.tryParse(amountCtrl.text),
+      startDate: startDate,
+      dueDate: dueDate,
+      users: List<String>.from(
+        users,
+      )..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
+      iconCode: iconCode,
+    );
+
+    final all = box.get('trackers', defaultValue: {});
+    all[id] = tracker.toMap();
+    box.put('trackers', all);
+    Navigator.pop(context);
   }
 }
