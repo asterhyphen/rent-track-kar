@@ -108,10 +108,13 @@ class _TrackerPageState extends State<TrackerPage> {
             colors: [Color(0xFF10192B), Color(0xFF090F1B)],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ListView(
-            children: [
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              physics: const BouncingScrollPhysics(),
+              children: [
               TextField(
                 controller: titleCtrl,
                 decoration: const InputDecoration(
@@ -257,7 +260,9 @@ class _TrackerPageState extends State<TrackerPage> {
                   label: const Text('Create Tracker'),
                 ),
               ),
+              const SizedBox(height: 24),
             ],
+            ),
           ),
         ),
       ),

@@ -288,7 +288,9 @@ ${pendingUsers.join('\n')}
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const BouncingScrollPhysics(),
             children: [
               GlassCard(
                 child: Column(
@@ -429,65 +431,62 @@ ${pendingUsers.join('\n')}
                 ],
               ),
               const SizedBox(height: 12),
-              Expanded(
-                child: ListView(
-                  children: tracker.users.map((u) {
-                    final isPaid = paid[u] == true;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: GlassCard(
-                        onTap: () {
-                          setState(() => paid[u] = !paid[u]!);
-                          persist();
-                        },
-                        child: Row(
-                          children: [
-                            Icon(
-                              isPaid
-                                  ? Icons.check_circle
-                                  : Icons.radio_button_unchecked,
-                              color: isPaid
-                                  ? const Color(0xFF3ED9A6)
-                                  : Colors.white54,
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    u,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    isPaid ? 'Paid' : 'Pending',
-                                    style: TextStyle(
-                                      color: isPaid
-                                          ? const Color(0xFF3ED9A6)
-                                          : const Color(0xFFFFB85C),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              '₹$perHead',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
+              ...tracker.users.map((u) {
+                final isPaid = paid[u] == true;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: GlassCard(
+                    onTap: () {
+                      setState(() => paid[u] = !paid[u]!);
+                      persist();
+                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          isPaid
+                              ? Icons.check_circle
+                              : Icons.radio_button_unchecked,
+                          color: isPaid
+                              ? const Color(0xFF3ED9A6)
+                              : Colors.white54,
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                u,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                isPaid ? 'Paid' : 'Pending',
+                                style: TextStyle(
+                                  color: isPaid
+                                      ? const Color(0xFF3ED9A6)
+                                      : const Color(0xFFFFB85C),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '₹$perHead',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 88),
             ],
           ),
         ),

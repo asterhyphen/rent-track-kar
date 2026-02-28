@@ -52,165 +52,169 @@ class _HomePageState extends State<HomePage> {
             colors: [Color(0xFF111A2B), Color(0xFF090F1B)],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: trackers.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No trackers yet.\nTap Add Tracker to start.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
-              : Column(
-                  children: [
-                    GlassCard(
-                      child: Row(
-                        children: [
-                          _statTile(
-                            context,
-                            label: 'Total',
-                            value: '${trackers.length}',
-                          ),
-                          const SizedBox(width: 12),
-                          _statTile(
-                            context,
-                            label: 'This Month',
-                            value: '${_activeCount(trackers, monthKey)}',
-                          ),
-                          const SizedBox(width: 12),
-                          _statTile(
-                            context,
-                            label: 'Users',
-                            value: '${_userCount(trackers)}',
-                          ),
-                        ],
-                      ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: trackers.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No trackers yet.\nTap Add Tracker to start.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16),
                     ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: trackers.length,
-                        itemBuilder: (c, i) {
-                          final t = trackers[i];
-                          final active = box.containsKey('${t.id}_$monthKey');
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Dismissible(
-                              key: ValueKey(t.id),
-                              direction: DismissDirection.endToStart,
-                              confirmDismiss: (_) async {
-                                return await showDialog<bool>(
-                                      context: context,
-                                      builder: (ctx) => AlertDialog(
-                                        title: const Text('Delete tracker?'),
-                                        content: const Text(
-                                          'Are you sure you want to delete this tracker? This action is irreversible.',
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(ctx, false),
-                                            child: const Text('Cancel'),
-                                          ),
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(ctx, true),
-                                            child: const Text('Delete'),
-                                          ),
-                                        ],
-                                      ),
-                                    ) ??
-                                    false;
-                              },
-                              onDismissed: (_) {
-                                final all = box.get('trackers');
-                                all.remove(t.id);
-                                box.put('trackers', all);
-                                setState(() {});
-                              },
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 24),
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Icon(
-                                  Icons.delete,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              child: GlassCard(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          CyclePage(trackerId: t.id),
-                                    ),
-                                  );
-                                },
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: active
-                                            ? const Color(0xFF00B894)
-                                            : Colors.white10,
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: Icon(
-                                        IconData(
-                                          t.iconCode,
-                                          fontFamily: 'MaterialIcons',
-                                        ),
-                                        color: active
-                                            ? Colors.black
-                                            : Colors.white70,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 14),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            t.title,
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            active
-                                                ? 'Tracking current month'
-                                                : 'Not started this month',
-                                            style: TextStyle(
-                                              color: active
-                                                  ? const Color(0xFF77FFD8)
-                                                  : Colors.white54,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const Icon(Icons.chevron_right),
-                                  ],
-                                ),
-                              ),
+                  )
+                : Column(
+                    children: [
+                      GlassCard(
+                        child: Row(
+                          children: [
+                            _statTile(
+                              context,
+                              label: 'Total',
+                              value: '${trackers.length}',
                             ),
-                          );
-                        },
+                            const SizedBox(width: 12),
+                            _statTile(
+                              context,
+                              label: 'This Month',
+                              value: '${_activeCount(trackers, monthKey)}',
+                            ),
+                            const SizedBox(width: 12),
+                            _statTile(
+                              context,
+                              label: 'Users',
+                              value: '${_userCount(trackers)}',
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: ListView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: trackers.length,
+                          padding: const EdgeInsets.only(bottom: 88),
+                          itemBuilder: (c, i) {
+                            final t = trackers[i];
+                            final active = box.containsKey('${t.id}_$monthKey');
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Dismissible(
+                                key: ValueKey(t.id),
+                                direction: DismissDirection.endToStart,
+                                confirmDismiss: (_) async {
+                                  return await showDialog<bool>(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('Delete tracker?'),
+                                          content: const Text(
+                                            'Are you sure you want to delete this tracker? This action is irreversible.',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(ctx, false),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(ctx, true),
+                                              child: const Text('Delete'),
+                                            ),
+                                          ],
+                                        ),
+                                      ) ??
+                                      false;
+                                },
+                                onDismissed: (_) {
+                                  final all = box.get('trackers');
+                                  all.remove(t.id);
+                                  box.put('trackers', all);
+                                  setState(() {});
+                                },
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 24),
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                child: GlassCard(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            CyclePage(trackerId: t.id),
+                                      ),
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 48,
+                                        height: 48,
+                                        decoration: BoxDecoration(
+                                          color: active
+                                              ? const Color(0xFF00B894)
+                                              : Colors.white10,
+                                          borderRadius: BorderRadius.circular(14),
+                                        ),
+                                        child: Icon(
+                                          IconData(
+                                            t.iconCode,
+                                            fontFamily: 'MaterialIcons',
+                                          ),
+                                          color: active
+                                              ? Colors.black
+                                              : Colors.white70,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              t.title,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              active
+                                                  ? 'Tracking current month'
+                                                  : 'Not started this month',
+                                              style: TextStyle(
+                                                color: active
+                                                    ? const Color(0xFF77FFD8)
+                                                    : Colors.white54,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(Icons.chevron_right),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
