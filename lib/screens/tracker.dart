@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'models.dart';
 import 'dart:math';
+import 'app_settings.dart';
 
 const trackerIcons = {
   'Bill': Icons.receipt_long,
@@ -60,6 +61,8 @@ class _TrackerPageState extends State<TrackerPage> {
   @override
   void initState() {
     super.initState();
+    final settings = AppSettings.fromMap(Hive.box('app').get('settings'));
+    dueDate = DateTime.now().add(Duration(days: settings.defaultDueDays));
 
     titleCtrl.addListener(() {
       if (!iconManuallySelected) {
@@ -319,6 +322,13 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   void _createTracker() {
+    if (titleCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a tracker name.')),
+      );
+      return;
+    }
+
     final box = Hive.box('app');
     final id = '${titleCtrl.text}_${Random().nextInt(9999)}';
 

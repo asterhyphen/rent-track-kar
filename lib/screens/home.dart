@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../widgets/glass_card.dart';
+import 'app_settings.dart';
 import 'cycle.dart';
 import 'models.dart';
+import 'settings.dart';
 import 'tracker.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,15 +25,29 @@ class _HomePageState extends State<HomePage> {
        .toList()
      ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
 
+    final settings = AppSettings.fromMap(box.get('settings'));
 
     final monthKey = '${DateTime.now().year}-${DateTime.now().month}';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Rent Track Kar',
+          'Trackers',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
+              );
+              if (mounted) setState(() {});
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         icon: const Icon(Icons.add),
@@ -57,33 +73,42 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(16),
             child: trackers.isEmpty
                 ? const Center(
-                    child: Text(
-                      'No trackers yet.\nTap Add Tracker to start.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    child: _EmptyState(),
                   )
                 : Column(
                     children: [
                       GlassCard(
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _statTile(
-                              context,
-                              label: 'Total',
-                              value: '${trackers.length}',
+                            const Text(
+                              'Rent Track Kar',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            const SizedBox(width: 12),
-                            _statTile(
-                              context,
-                              label: 'This Month',
-                              value: '${_activeCount(trackers, monthKey)}',
-                            ),
-                            const SizedBox(width: 12),
-                            _statTile(
-                              context,
-                              label: 'Users',
-                              value: '${_userCount(trackers)}',
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                _statTile(
+                                  context,
+                                  label: 'Total',
+                                  value: '${trackers.length}',
+                                ),
+                                const SizedBox(width: 12),
+                                _statTile(
+                                  context,
+                                  label: 'This Month',
+                                  value: '${_activeCount(trackers, monthKey)}',
+                                ),
+                                const SizedBox(width: 12),
+                                _statTile(
+                                  context,
+                                  label: 'Users',
+                                  value: '${_userCount(trackers)}',
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -104,6 +129,7 @@ class _HomePageState extends State<HomePage> {
                                 key: ValueKey(t.id),
                                 direction: DismissDirection.endToStart,
                                 confirmDismiss: (_) async {
+                                  if (!settings.confirmDelete) return true;
                                   return await showDialog<bool>(
                                         context: context,
                                         builder: (ctx) => AlertDialog(
@@ -251,6 +277,26 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: const [
+        Icon(Icons.track_changes_outlined, size: 54, color: Colors.white70),
+        SizedBox(height: 10),
+        Text(
+          'No trackers yet.\nTap Add Tracker to get started.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16),
+        ),
+      ],
     );
   }
 }
