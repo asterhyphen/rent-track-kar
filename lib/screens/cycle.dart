@@ -26,7 +26,8 @@ class _CyclePageState extends State<CyclePage> {
 
   String get monthKey => '${DateTime.now().year}-${DateTime.now().month}';
 
-  int get perHead => tracker.users.isEmpty ? 0 : (total / tracker.users.length).ceil();
+  int get perHead =>
+      tracker.users.isEmpty ? 0 : (total / tracker.users.length).ceil();
 
   void setAllPaid(bool value) {
     setState(() {
@@ -216,7 +217,9 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   String message() {
-    final per = tracker.users.isEmpty ? 0 : (total / tracker.users.length).ceil();
+    final per = tracker.users.isEmpty
+        ? 0
+        : (total / tracker.users.length).ceil();
 
     final paidUsers = tracker.users.where((u) => paid[u] == true).toList()
       ..sort();
@@ -297,7 +300,10 @@ ${pendingUsers.join('\n')}
                   children: [
                     Row(
                       children: [
-                        const Text('Total', style: TextStyle(color: Colors.white70)),
+                        const Text(
+                          'Total',
+                          style: TextStyle(color: Colors.white70),
+                        ),
                         const Spacer(),
                         Text(
                           '₹$total',
@@ -311,7 +317,10 @@ ${pendingUsers.join('\n')}
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Text('Per Head', style: TextStyle(color: Colors.white70)),
+                        const Text(
+                          'Per Head',
+                          style: TextStyle(color: Colors.white70),
+                        ),
                         const Spacer(),
                         Text(
                           '₹$perHead',
@@ -366,7 +375,9 @@ ${pendingUsers.join('\n')}
                             onPressed: () {
                               setState(() {
                                 if (editingTotal) {
-                                  total = int.tryParse(totalController.text) ?? total;
+                                  total =
+                                      int.tryParse(totalController.text) ??
+                                      total;
                                   persist();
                                 }
                                 editingTotal = !editingTotal;
@@ -510,14 +521,20 @@ ${pendingUsers.join('\n')}
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.white70)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 12, color: Colors.white70),
+          ),
           const SizedBox(height: 6),
           Text(
             value,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 2),
-          Text(subValue, style: TextStyle(color: tint, fontWeight: FontWeight.w600)),
+          Text(
+            subValue,
+            style: TextStyle(color: tint, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );

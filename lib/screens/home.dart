@@ -20,10 +20,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final raw = box.get('trackers', defaultValue: {}) as Map;
-    final trackers = raw.values
-       .map((e) => Tracker.fromMap(e))
-       .toList()
-     ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    final trackers = raw.values.map((e) => Tracker.fromMap(e)).toList()
+      ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
 
     final settings = AppSettings.fromMap(box.get('settings'));
 
@@ -72,9 +70,7 @@ class _HomePageState extends State<HomePage> {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: trackers.isEmpty
-                ? const Center(
-                    child: _EmptyState(),
-                  )
+                ? const Center(child: _EmptyState())
                 : Column(
                     children: [
                       GlassCard(
@@ -190,7 +186,9 @@ class _HomePageState extends State<HomePage> {
                                           color: active
                                               ? const Color(0xFF00B894)
                                               : Colors.white10,
-                                          borderRadius: BorderRadius.circular(14),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
                                         ),
                                         child: Icon(
                                           IconData(

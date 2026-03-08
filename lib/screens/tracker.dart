@@ -118,153 +118,154 @@ class _TrackerPageState extends State<TrackerPage> {
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               physics: const BouncingScrollPhysics(),
               children: [
-              TextField(
-                controller: titleCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Tracker name',
-                  prefixIcon: Icon(Icons.description_outlined),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Amount (optional)',
-                  prefixIcon: Icon(Icons.currency_rupee),
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _dateTile(
-                      icon: Icons.calendar_month,
-                      label: 'Start Date',
-                      value:
-                          '${startDate.day}/${startDate.month}/${startDate.year}',
-                      onTap: () => pickDate(true),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _dateTile(
-                      icon: Icons.event,
-                      label: 'Due Date',
-                      value: '${dueDate.day}/${dueDate.month}/${dueDate.year}',
-                      onTap: () => pickDate(false),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: userCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Add user',
-                        prefixIcon: Icon(Icons.person_add_alt_1),
-                      ),
-                      onSubmitted: (_) => _addUser(),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  IconButton.filled(
-                    icon: const Icon(Icons.add),
-                    onPressed: _addUser,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: users
-                    .map(
-                      (u) => Chip(
-                        label: Text(u),
-                        deleteIcon: const Icon(Icons.close, size: 16),
-                        onDeleted: () => setState(() => users.remove(u)),
-                      ),
-                    )
-                    .toList(),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.07),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.10),
+                TextField(
+                  controller: titleCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Tracker name',
+                    prefixIcon: Icon(Icons.description_outlined),
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                const SizedBox(height: 12),
+                TextField(
+                  controller: amountCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Amount (optional)',
+                    prefixIcon: Icon(Icons.currency_rupee),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 14),
+                Row(
                   children: [
-                    const Text('Per Head'),
-                    Text(
-                      peopleCount == 0 || baseAmount == 0
-                          ? 'Add amount & users'
-                          : '₹$perHead each',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
+                    Expanded(
+                      child: _dateTile(
+                        icon: Icons.calendar_month,
+                        label: 'Start Date',
+                        value:
+                            '${startDate.day}/${startDate.month}/${startDate.year}',
+                        onTap: () => pickDate(true),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _dateTile(
+                        icon: Icons.event,
+                        label: 'Due Date',
+                        value:
+                            '${dueDate.day}/${dueDate.month}/${dueDate.year}',
+                        onTap: () => pickDate(false),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                'Pick Icon',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: trackerIcons.entries.map((e) {
-                  final selected = iconCode == e.value.codePoint;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        iconCode = e.value.codePoint;
-                        iconManuallySelected = true;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color: selected
-                            ? const Color(0xFF00B894)
-                            : Colors.white.withValues(alpha: 0.08),
-                      ),
-                      child: Icon(
-                        e.value,
-                        color: selected ? Colors.black : Colors.white,
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: userCtrl,
+                        decoration: const InputDecoration(
+                          labelText: 'Add user',
+                          prefixIcon: Icon(Icons.person_add_alt_1),
+                        ),
+                        onSubmitted: (_) => _addUser(),
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: _createTracker,
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Create Tracker'),
+                    const SizedBox(width: 6),
+                    IconButton.filled(
+                      icon: const Icon(Icons.add),
+                      onPressed: _addUser,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: users
+                      .map(
+                        (u) => Chip(
+                          label: Text(u),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () => setState(() => users.remove(u)),
+                        ),
+                      )
+                      .toList(),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.10),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Per Head'),
+                      Text(
+                        peopleCount == 0 || baseAmount == 0
+                            ? 'Add amount & users'
+                            : '₹$perHead each',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Pick Icon',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: trackerIcons.entries.map((e) {
+                    final selected = iconCode == e.value.codePoint;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          iconCode = e.value.codePoint;
+                          iconManuallySelected = true;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: selected
+                              ? const Color(0xFF00B894)
+                              : Colors.white.withValues(alpha: 0.08),
+                        ),
+                        child: Icon(
+                          e.value,
+                          color: selected ? Colors.black : Colors.white,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: _createTracker,
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('Create Tracker'),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
           ),
         ),
@@ -330,7 +331,8 @@ class _TrackerPageState extends State<TrackerPage> {
     }
 
     final box = Hive.box('app');
-    final id = '${titleCtrl.text}_${Random().nextInt(9999)}';
+    // use timestamp to generate a more collision-resistant id
+    final id = '${titleCtrl.text}_${DateTime.now().millisecondsSinceEpoch}';
 
     final tracker = Tracker(
       id: id,
@@ -338,9 +340,8 @@ class _TrackerPageState extends State<TrackerPage> {
       amount: int.tryParse(amountCtrl.text),
       startDate: startDate,
       dueDate: dueDate,
-      users: List<String>.from(
-        users,
-      )..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
+      users: List<String>.from(users)
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
       iconCode: iconCode,
     );
 

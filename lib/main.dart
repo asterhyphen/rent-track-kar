@@ -10,7 +10,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -59,11 +58,16 @@ class MyApp extends StatelessWidget {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
+                borderSide: BorderSide(
+                  color: Colors.black.withValues(alpha: 0.08),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF00A885), width: 1.2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF00A885),
+                  width: 1.2,
+                ),
               ),
             ),
           ),
@@ -83,11 +87,16 @@ class MyApp extends StatelessWidget {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF00E0B2), width: 1.2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF00E0B2),
+                  width: 1.2,
+                ),
               ),
             ),
           ),
