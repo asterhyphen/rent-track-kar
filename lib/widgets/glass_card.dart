@@ -35,10 +35,7 @@ class GlassCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: child,
-          ),
+          child: Padding(padding: const EdgeInsets.all(20), child: child),
         ),
       ),
     );

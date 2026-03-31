@@ -27,7 +27,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _clearMonthlyData() async {
-    final shouldClear = await showDialog<bool>(
+    final shouldClear =
+        await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Clear monthly records?'),
@@ -64,9 +65,9 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Monthly records cleared.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Monthly records cleared.')));
   }
 
   @override
