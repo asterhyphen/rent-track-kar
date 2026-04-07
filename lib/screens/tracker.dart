@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'models.dart';
-import 'dart:math';
+
 import 'app_settings.dart';
+import 'models.dart';
 
 const trackerIcons = {
   'Bill': Icons.receipt_long,

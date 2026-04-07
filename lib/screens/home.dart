@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+
 import '../widgets/glass_card.dart';
 import 'app_settings.dart';
 import 'cycle.dart';
@@ -24,8 +25,10 @@ class _HomePageState extends State<HomePage> {
       ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
 
     final settings = AppSettings.fromMap(box.get('settings'));
-
     final monthKey = '${DateTime.now().year}-${DateTime.now().month}';
+    final totalMembers = _userCount(trackers);
+    final paidMembers = _paidUserCount(trackers, monthKey);
+    final activeTrackers = _activeCount(trackers, monthKey);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,7 +58,7 @@ class _HomePageState extends State<HomePage> {
             context,
             MaterialPageRoute(builder: (_) => const TrackerPage()),
           );
-          setState(() {});
+          if (mounted) setState(() {});
         },
       ),
       body: Container(
@@ -77,14 +80,49 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Rent Track Kar',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF00B894,
+                                    ).withValues(alpha: 0.18),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(
+                                    Icons.analytics_outlined,
+                                    color: Color(0xFF77FFD8),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Rent Track Kar',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        'Track this month at a glance',
+                                        style: TextStyle(
+                                          color: Colors.white60,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 18),
                             Row(
                               children: [
                                 _statTile(
@@ -95,16 +133,81 @@ class _HomePageState extends State<HomePage> {
                                 const SizedBox(width: 12),
                                 _statTile(
                                   context,
-                                  label: 'This Month',
-                                  value: '${_activeCount(trackers, monthKey)}',
+                                  label: 'Live',
+                                  value: '$activeTrackers',
                                 ),
                                 const SizedBox(width: 12),
                                 _statTile(
                                   context,
                                   label: 'Users',
-                                  value: '${_userCount(trackers)}',
+                                  value: '$totalMembers',
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 18),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.06),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.08),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.08,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.task_alt,
+                                      color: Color(0xFF77FFD8),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'This month collection',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.white60,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '$paidMembers/$totalMembers paid',
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    totalMembers == 0
+                                        ? '0%'
+                                        : '${((paidMembers / totalMembers) * 100).round()}%',
+                                    style: const TextStyle(
+                                      color: Color(0xFF77FFD8),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -116,13 +219,26 @@ class _HomePageState extends State<HomePage> {
                           itemCount: trackers.length,
                           padding: const EdgeInsets.only(bottom: 88),
                           itemBuilder: (c, i) {
-                            final t = trackers[i];
-                            final active = box.containsKey('${t.id}_$monthKey');
+                            final tracker = trackers[i];
+                            final monthlyKey = '${tracker.id}_$monthKey';
+                            final active = box.containsKey(monthlyKey);
+                            final monthlyData = active
+                                ? Map<String, dynamic>.from(box.get(monthlyKey))
+                                : null;
+                            final paidCount = monthlyData == null
+                                ? 0
+                                : Map<String, dynamic>.from(
+                                    monthlyData['paid'] ?? <String, dynamic>{},
+                                  ).values.where((value) => value == true).length;
+                            final totalCount = tracker.users.length;
+                            final progress = totalCount == 0
+                                ? 0.0
+                                : paidCount / totalCount;
 
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: Dismissible(
-                                key: ValueKey(t.id),
+                                key: ValueKey(tracker.id),
                                 direction: DismissDirection.endToStart,
                                 confirmDismiss: (_) async {
                                   if (!settings.confirmDelete) return true;
@@ -151,7 +267,7 @@ class _HomePageState extends State<HomePage> {
                                 },
                                 onDismissed: (_) {
                                   final all = box.get('trackers');
-                                  all.remove(t.id);
+                                  all.remove(tracker.id);
                                   box.put('trackers', all);
                                   setState(() {});
                                 },
@@ -168,66 +284,111 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                                 child: GlassCard(
-                                  onTap: () {
-                                    Navigator.push(
+                                  onTap: () async {
+                                    await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) =>
-                                            CyclePage(trackerId: t.id),
+                                            CyclePage(trackerId: tracker.id),
                                       ),
                                     );
+                                    if (mounted) setState(() {});
                                   },
-                                  child: Row(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Container(
-                                        width: 48,
-                                        height: 48,
-                                        decoration: BoxDecoration(
-                                          color: active
-                                              ? const Color(0xFF00B894)
-                                              : Colors.white10,
-                                          borderRadius: BorderRadius.circular(
-                                            14,
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 52,
+                                            height: 52,
+                                            decoration: BoxDecoration(
+                                              color: active
+                                                  ? const Color(
+                                                      0xFF00B894,
+                                                    ).withValues(alpha: 0.95)
+                                                  : Colors.white10,
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            child: Icon(
+                                              IconData(
+                                                tracker.iconCode,
+                                                fontFamily: 'MaterialIcons',
+                                              ),
+                                              color: active
+                                                  ? Colors.black
+                                                  : Colors.white70,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 14),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  tracker.title,
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  active
+                                                      ? '$paidCount/$totalCount paid'
+                                                      : 'Not started this month',
+                                                  style: TextStyle(
+                                                    color: active
+                                                        ? const Color(
+                                                            0xFF77FFD8,
+                                                          )
+                                                        : Colors.white54,
+                                                    fontWeight: active
+                                                        ? FontWeight.w600
+                                                        : FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Icon(Icons.chevron_right),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 14),
+                                      Row(
+                                        children: [
+                                          _chipLabel(
+                                            icon: Icons.people_alt_outlined,
+                                            label:
+                                                '$totalCount member${totalCount == 1 ? '' : 's'}',
+                                          ),
+                                          const SizedBox(width: 8),
+                                          _chipLabel(
+                                            icon: Icons.calendar_month_outlined,
+                                            label: active ? 'Active' : 'Pending',
+                                            highlighted: active,
+                                          ),
+                                        ],
+                                      ),
+                                      if (active) ...[
+                                        const SizedBox(height: 14),
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                          child: LinearProgressIndicator(
+                                            minHeight: 8,
+                                            value: progress,
+                                            backgroundColor: Colors.white12,
+                                            valueColor:
+                                                const AlwaysStoppedAnimation<
+                                                  Color
+                                                >(Color(0xFF3ED9A6)),
                                           ),
                                         ),
-                                        child: Icon(
-                                          IconData(
-                                            t.iconCode,
-                                            fontFamily: 'MaterialIcons',
-                                          ),
-                                          color: active
-                                              ? Colors.black
-                                              : Colors.white70,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 14),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              t.title,
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              active
-                                                  ? 'Tracking current month'
-                                                  : 'Not started this month',
-                                              style: TextStyle(
-                                                color: active
-                                                    ? const Color(0xFF77FFD8)
-                                                    : Colors.white54,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const Icon(Icons.chevron_right),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -252,6 +413,22 @@ class _HomePageState extends State<HomePage> {
     return trackers.fold<int>(0, (sum, t) => sum + t.users.length);
   }
 
+  int _paidUserCount(List<Tracker> trackers, String monthKey) {
+    var total = 0;
+
+    for (final tracker in trackers) {
+      final monthlyData = box.get('${tracker.id}_$monthKey');
+      if (monthlyData == null) continue;
+
+      final paidMap = Map<String, dynamic>.from(
+        monthlyData['paid'] ?? <String, dynamic>{},
+      );
+      total += paidMap.values.where((value) => value == true).length;
+    }
+
+    return total;
+  }
+
   Widget _statTile(
     BuildContext context, {
     required String label,
@@ -271,6 +448,46 @@ class _HomePageState extends State<HomePage> {
               color: Theme.of(
                 context,
               ).colorScheme.onSurface.withValues(alpha: 0.65),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chipLabel({
+    required IconData icon,
+    required String label,
+    bool highlighted = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: highlighted
+            ? const Color(0xFF00B894).withValues(alpha: 0.14)
+            : Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: highlighted
+              ? const Color(0xFF00E0B2).withValues(alpha: 0.35)
+              : Colors.white.withValues(alpha: 0.07),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 15,
+            color: highlighted ? const Color(0xFF77FFD8) : Colors.white70,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: highlighted ? const Color(0xFF77FFD8) : Colors.white70,
             ),
           ),
         ],
