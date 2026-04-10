@@ -45,6 +45,8 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           themeMode: settings.materialThemeMode,
+          themeAnimationCurve: Curves.easeInOutCubic,
+          themeAnimationDuration: const Duration(milliseconds: 350),
           theme: lightBase.copyWith(
             scaffoldBackgroundColor: const Color(0xFFF4F8FB),
             appBarTheme: AppBarTheme(

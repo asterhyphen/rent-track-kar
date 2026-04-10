@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import 'app_settings.dart';
+import 'message_template_editor.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -27,50 +28,13 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _editMessageTemplate() async {
-    final controller = TextEditingController(text: settings.messageTemplate);
-
     final updatedTemplate =
-        await showDialog<String>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Edit message template'),
-            content: SizedBox(
-              width: 520,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: controller,
-                    maxLines: 14,
-                    minLines: 10,
-                    decoration: const InputDecoration(
-                      alignLabelWithHint: true,
-                      labelText: 'Template',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Available placeholders: {title}, {dueDate}, {daysRemaining}, {total}, {perHead}, {paidCount}, {paidAmount}, {paidUsers}, {pendingCount}, {pendingAmount}, {pendingUsers}',
-                    style: Theme.of(ctx).textTheme.bodySmall,
-                  ),
-                ],
-              ),
+        await Navigator.push<String>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MessageTemplateEditorPage(
+              initialTemplate: settings.messageTemplate,
             ),
-            actions: [
-              TextButton(
-                onPressed: () => controller.text = AppSettings.defaultMessageTemplate,
-                child: const Text('Reset default'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, controller.text),
-                child: const Text('Save'),
-              ),
-            ],
           ),
         ) ??
         '';
@@ -234,24 +198,21 @@ class _SettingsPageState extends State<SettingsPage> {
             context: context,
             title: 'Appearance',
             icon: Icons.palette_outlined,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final compact = constraints.maxWidth < 340;
-                return SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'system', label: Text('System')),
-                    ButtonSegment(value: 'light', label: Text('Light')),
-                    ButtonSegment(value: 'dark', label: Text('Dark')),
-                  ],
-                  selected: {settings.themeMode},
-                  multiSelectionEnabled: false,
-                  showSelectedIcon: false,
-                  direction: compact ? Axis.vertical : Axis.horizontal,
-                  onSelectionChanged: (selected) {
-                    _save(settings.copyWith(themeMode: selected.first));
-                  },
-                );
-              },
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'system', label: Text('System')),
+                  ButtonSegment(value: 'light', label: Text('Light')),
+                  ButtonSegment(value: 'dark', label: Text('Dark')),
+                ],
+                selected: {settings.themeMode},
+                multiSelectionEnabled: false,
+                showSelectedIcon: false,
+                onSelectionChanged: (selected) {
+                  _save(settings.copyWith(themeMode: selected.first));
+                },
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -273,7 +234,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Default message template'),
-                  subtitle: const Text('Edit the text used for share messages'),
+                  subtitle: const Text(
+                    'Open a full editor with placeholders and formatting help',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _editMessageTemplate,
                 ),
