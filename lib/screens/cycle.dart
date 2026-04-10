@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/glass_card.dart';
+import 'app_settings.dart';
 import 'models.dart';
 import 'tracker.dart';
 
@@ -217,6 +218,7 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   String message() {
+    final settings = AppSettings.fromMap(box.get('settings'));
     final per = tracker.users.isEmpty
         ? 0
         : (total / tracker.users.length).ceil();
@@ -230,23 +232,25 @@ class _CyclePageState extends State<CyclePage> {
     final daysRemaining = due!
         .difference(DateTime(now.year, now.month, now.day))
         .inDays;
+    final replacements = <String, String>{
+      '{title}': tracker.title,
+      '{dueDate}': '${due!.day}/${due!.month}/${due!.year}',
+      '{daysRemaining}': '$daysRemaining',
+      '{total}': '$total',
+      '{perHead}': '$per',
+      '{paidCount}': '${paidUsers.length}',
+      '{paidAmount}': '${paidUsers.length * per}',
+      '{paidUsers}': paidUsers.isEmpty ? '-' : paidUsers.join('\n'),
+      '{pendingCount}': '${pendingUsers.length}',
+      '{pendingAmount}': '${pendingUsers.length * per}',
+      '{pendingUsers}': pendingUsers.isEmpty ? '-' : pendingUsers.join('\n'),
+    };
 
-    // the message
-    return '''
-*_${tracker.title}_*
-_Due:_ ${due!.day}/${due!.month}/${due!.year} ($daysRemaining days remaining)
-_Total:_ ₹$total (₹$per each)
-
-_Paid (${paidUsers.length}; ₹${paidUsers.length * per})_
-```
-${paidUsers.join('\n')}
-```
-
-_Pending (${pendingUsers.length}; ₹${pendingUsers.length * per})_
-```
-${pendingUsers.join('\n')}
-```
-''';
+    var template = settings.messageTemplate;
+    replacements.forEach((key, value) {
+      template = template.replaceAll(key, value);
+    });
+    return template;
   }
 
   @override

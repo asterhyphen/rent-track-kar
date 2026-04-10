@@ -26,6 +26,59 @@ class _SettingsPageState extends State<SettingsPage> {
     box.put('settings', value.toMap());
   }
 
+  Future<void> _editMessageTemplate() async {
+    final controller = TextEditingController(text: settings.messageTemplate);
+
+    final updatedTemplate =
+        await showDialog<String>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Edit message template'),
+            content: SizedBox(
+              width: 520,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: controller,
+                    maxLines: 14,
+                    minLines: 10,
+                    decoration: const InputDecoration(
+                      alignLabelWithHint: true,
+                      labelText: 'Template',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Available placeholders: {title}, {dueDate}, {daysRemaining}, {total}, {perHead}, {paidCount}, {paidAmount}, {paidUsers}, {pendingCount}, {pendingAmount}, {pendingUsers}',
+                    style: Theme.of(ctx).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => controller.text = AppSettings.defaultMessageTemplate,
+                child: const Text('Reset default'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, controller.text),
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+        ) ??
+        '';
+
+    if (updatedTemplate.trim().isEmpty) return;
+    _save(settings.copyWith(messageTemplate: updatedTemplate));
+  }
+
   Future<void> _clearMonthlyData() async {
     final shouldClear =
         await showDialog<bool>(
@@ -206,13 +259,25 @@ class _SettingsPageState extends State<SettingsPage> {
             context: context,
             title: 'Behavior',
             icon: Icons.touch_app_outlined,
-            child: SwitchListTile.adaptive(
-              value: settings.confirmDelete,
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Confirm before deleting tracker'),
-              onChanged: (value) {
-                _save(settings.copyWith(confirmDelete: value));
-              },
+            child: Column(
+              children: [
+                SwitchListTile.adaptive(
+                  value: settings.confirmDelete,
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Confirm before deleting tracker'),
+                  onChanged: (value) {
+                    _save(settings.copyWith(confirmDelete: value));
+                  },
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Default message template'),
+                  subtitle: const Text('Edit the text used for share messages'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _editMessageTemplate,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
