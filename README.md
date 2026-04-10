@@ -5,9 +5,9 @@ The app initially started as a vibecoded mess + a single prompt and has went thr
 <Adding Screeshots here later>
 
 # How to use
-- Create a trackkar and select your required options
+- Create a trackkar and select your required options.
 - Add groups *(ex: roommates)* such that you don't have to manually enter the same people multiple times for a set group of people.
-- Add one person in multiple groups </br>
+- Add one person in multiple groups. </br>
 *(Ex: in ` Rent ` as well as in ` Electricity `)*
 - Send message directly across any social platform.
 - Customise the message in settings.
