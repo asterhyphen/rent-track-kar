@@ -228,7 +228,6 @@ class _SettingsPageState extends State<SettingsPage> {
               scrollDirection: Axis.horizontal,
               child: SegmentedButton<String>(
                 segments: const [
-                  ButtonSegment(value: 'system', label: Text('System')),
                   ButtonSegment(value: 'light', label: Text('Light')),
                   ButtonSegment(value: 'dark', label: Text('Dark')),
                 ],

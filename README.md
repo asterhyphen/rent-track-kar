@@ -21,4 +21,5 @@ The app initially started as a vibecoded mess + a single prompt and has went thr
 Feel free to create issues for feature requests or to report bugs. </br>
 PRs are appreciated but may take some time to review.
 
-> *I know my humour and puns are horrible across the app, you don't have to let me know 😭* 
+> [!NOTE]
+> Do note that the app is still a vibe coded mess, there is a lot to change, but it is functional without looking *super ugly*. There is still work to do and have to change that app icon first, it is terrible. </br> *I know my humour and puns are horrible across the app, you don't have to let me know 😭* 

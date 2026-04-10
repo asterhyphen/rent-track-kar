@@ -84,8 +84,6 @@ _Pending ({pendingCount}; ₹{pendingAmount})_
 
   ThemeMode get materialThemeMode {
     switch (themeMode) {
-      case 'system':
-        return ThemeMode.system;
       case 'light':
         return ThemeMode.light;
       case 'dark':
@@ -96,7 +94,7 @@ _Pending ({pendingCount}; ₹{pendingAmount})_
 
   static String _normalizeThemeMode(Object? value) {
     final mode = (value ?? '').toString().toLowerCase();
-    if (mode == 'system' || mode == 'light' || mode == 'dark') return mode;
+    if (mode == 'light' || mode == 'dark') return mode;
     return defaults.themeMode;
   }
 
