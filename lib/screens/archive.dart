@@ -22,11 +22,14 @@ class _ArchivePageState extends State<ArchivePage> {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final raw = box.get('trackkars', defaultValue: {}) as Map;
-    final trackkars = raw.values
-        .map((e) => Tracker.fromMap(e))
-        .where((tracker) => tracker.archived)
-        .toList()
-      ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    final trackkars =
+        raw.values
+            .map((e) => Tracker.fromMap(e))
+            .where((tracker) => tracker.archived)
+            .toList()
+          ..sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+          );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Archive')),
@@ -46,7 +49,7 @@ class _ArchivePageState extends State<ArchivePage> {
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      'No archived trackkars yet.',
+                      'No trackkars have been archived yet.',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
@@ -176,14 +179,18 @@ class _ArchivePageState extends State<ArchivePage> {
 
   void _deleteTracker(String trackerId) {
     final all = box.get('trackkars', defaultValue: {}) as Map;
-    final tracker = all[trackerId] != null ? Tracker.fromMap(all[trackerId]) : null;
+    final tracker = all[trackerId] != null
+        ? Tracker.fromMap(all[trackerId])
+        : null;
     all.remove(trackerId);
     box.put('trackkars', all);
     NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(
       context,
-      message: tracker == null ? 'Tracker deleted.' : '${tracker.title} deleted.',
+      message: tracker == null
+          ? 'Tracker deleted.'
+          : '${tracker.title} deleted.',
       icon: Icons.delete_outline,
     );
   }

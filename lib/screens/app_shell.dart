@@ -15,11 +15,11 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
 
-  static const _titles = ['Trackers', 'Users', 'Settings'];
+  static const _titles = ['Trackkars', 'Users', 'Settings'];
   static const _subtitles = [
-    'Monitor collections and due cycles',
-    'People directory coming next',
-    'Tune appearance and defaults',
+    'List and manage all your tracckars',
+    'Manage users and groups',
+    'Personalise your experience',
   ];
 
   @override

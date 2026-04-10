@@ -204,7 +204,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Personalize the look and tracker behavior.',
+                            'Personalize the look and experience of the app.',
                             style: textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurface.withValues(
                                 alpha: 0.66,
@@ -266,9 +266,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 8),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Default message template'),
+                  title: const Text('Edit message template'),
                   subtitle: const Text(
-                    'Open a full editor with placeholders and formatting help',
+                    'Customise the message to be shared.',
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _editMessageTemplate,
@@ -288,7 +288,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Enable due reminders'),
                   subtitle: const Text(
-                    'Permission is requested only when you enable this',
+                    'Notification permission is required for this feature to work.',
                   ),
                   onChanged: _setNotificationsEnabled,
                 ),
@@ -298,7 +298,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: Text(
                     'Send reminder ${settings.reminderDaysBefore} day${settings.reminderDaysBefore == 1 ? '' : 's'} before due date',
                   ),
-                  subtitle: const Text('Pick how early you want the alert'),
+                  subtitle: const Text('Customise when to send reminders.'),
                 ),
                 Slider(
                   min: 1,
@@ -326,7 +326,7 @@ class _SettingsPageState extends State<SettingsPage> {
             child: ListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Clear monthly records'),
-              subtitle: const Text('Trackers remain unchanged'),
+              subtitle: const Text('Trackkars remain unchanged'),
               trailing: Container(
                 width: 38,
                 height: 38,

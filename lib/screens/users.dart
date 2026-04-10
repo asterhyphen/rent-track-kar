@@ -82,7 +82,7 @@ class _UsersPageState extends State<UsersPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Save people once, then reuse them while creating trackkars.',
+                              'Save names of people once and use them when creating trackkars.',
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurface.withValues(
                                   alpha: 0.68,
@@ -116,13 +116,13 @@ class _UsersPageState extends State<UsersPage> {
             const SizedBox(height: 16),
             _sectionCard(
               context,
-              title: 'Saved Users',
+              title: 'Users',
               actionLabel: 'Add User',
               onAction: _showAddUserSheet,
               child: users.isEmpty
                   ? _emptyBody(
                       context,
-                      'No saved users yet. Add people here so tracker creation is quicker later.',
+                      'No users have been saved yet. Add people here so trackkar creation is easier and faster later.',
                     )
                   : Wrap(
                       spacing: 10,
@@ -147,7 +147,7 @@ class _UsersPageState extends State<UsersPage> {
                       context,
                       users.isEmpty
                           ? 'Add users first, then combine them into reusable groups.'
-                          : 'No groups yet. Create groups from existing users for one-tap tracker setup.',
+                          : 'No groups have been created yet. Create groups from existing users for one-tap trackkar setup.',
                     )
                   : Column(
                       children: groups.map((group) {
@@ -211,10 +211,8 @@ class _UsersPageState extends State<UsersPage> {
                                         runSpacing: 8,
                                         children: group.members
                                             .map(
-                                              (member) => _miniTag(
-                                                context,
-                                                member,
-                                              ),
+                                              (member) =>
+                                                  _miniTag(context, member),
                                             )
                                             .toList(),
                                       ),
@@ -302,9 +300,9 @@ class _UsersPageState extends State<UsersPage> {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(
-                  alpha: 0.68,
-                ),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.68),
               ),
             ),
           ],
@@ -387,9 +385,7 @@ class _UsersPageState extends State<UsersPage> {
       ),
       child: Text(
         label,
-        style: theme.textTheme.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
+        style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -448,7 +444,7 @@ class _UsersPageState extends State<UsersPage> {
     if (name.isEmpty) {
       showAppAlert(
         context,
-        message: 'Enter a user name first.',
+        message: 'Name field is empty.',
         icon: Icons.info_outline,
         tone: AppAlertTone.info,
       );
@@ -458,7 +454,7 @@ class _UsersPageState extends State<UsersPage> {
     if (users.contains(name)) {
       showAppAlert(
         context,
-        message: '$name already exists.',
+        message: '$name already exists. Try using full name or nicknames.',
         icon: Icons.info_outline,
         tone: AppAlertTone.info,
       );
@@ -468,7 +464,7 @@ class _UsersPageState extends State<UsersPage> {
     box.put('savedUsers', normalizeNames([...users, name]));
     Navigator.pop(context);
     setState(() {});
-    showAppAlert(context, message: '$name added to saved users.');
+    showAppAlert(context, message: '$name has been added to saved users.');
   }
 
   Future<void> _showCreateGroupSheet() async {
@@ -564,7 +560,7 @@ class _UsersPageState extends State<UsersPage> {
     if (name.isEmpty) {
       showAppAlert(
         context,
-        message: 'Enter a group name first.',
+        message: 'Group name field is empty.',
         icon: Icons.info_outline,
         tone: AppAlertTone.info,
       );
@@ -574,7 +570,7 @@ class _UsersPageState extends State<UsersPage> {
     if (normalizedMembers.isEmpty) {
       showAppAlert(
         context,
-        message: 'Select at least one user for the group.',
+        message: 'Cannot create an empty group. Select at least one user.',
         icon: Icons.info_outline,
         tone: AppAlertTone.info,
       );
@@ -588,7 +584,7 @@ class _UsersPageState extends State<UsersPage> {
     if (alreadyExists) {
       showAppAlert(
         context,
-        message: '$name already exists as a group.',
+        message: '$name already exists as a group. Try using a different name.',
         icon: Icons.info_outline,
         tone: AppAlertTone.info,
       );
@@ -621,9 +617,9 @@ class _UsersPageState extends State<UsersPage> {
       final group = UserGroup.fromMap(entry.value);
       final remainingMembers = group.members.where((m) => m != user).toList();
       if (remainingMembers.isEmpty) continue;
-      updatedGroups[entry.key] = group.copyWith(
-        members: normalizeNames(remainingMembers),
-      ).toMap();
+      updatedGroups[entry.key] = group
+          .copyWith(members: normalizeNames(remainingMembers))
+          .toMap();
     }
 
     box.put('userGroups', updatedGroups);
@@ -638,7 +634,7 @@ class _UsersPageState extends State<UsersPage> {
           builder: (context) => AlertDialog(
             title: const Text('Remove user?'),
             content: Text(
-              '$user will be removed from saved users and from any groups using them.',
+              '$user will be removed from saved users and from any groups which they are in.',
             ),
             actions: [
               TextButton(

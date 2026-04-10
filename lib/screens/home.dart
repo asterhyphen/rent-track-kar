@@ -24,11 +24,14 @@ class _HomePageState extends State<HomePage> {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final raw = box.get('trackkars', defaultValue: {}) as Map;
-    final trackkars = raw.values
-        .map((e) => Tracker.fromMap(e))
-        .where((tracker) => !tracker.archived)
-        .toList()
-      ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    final trackkars =
+        raw.values
+            .map((e) => Tracker.fromMap(e))
+            .where((tracker) => !tracker.archived)
+            .toList()
+          ..sort(
+            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+          );
 
     final settings = AppSettings.fromMap(box.get('settings'));
     final monthKey = '${DateTime.now().year}-${DateTime.now().month}';
@@ -90,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Track this month at a glance',
+                                      'Track and manage shared expenses',
                                       style: TextStyle(
                                         color: colorScheme.onSurface.withValues(
                                           alpha: 0.62,
@@ -114,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(width: 12),
                               _statTile(
                                 context,
-                                label: 'Live',
+                                label: 'Active',
                                 value: '$activeTrackers',
                               ),
                               const SizedBox(width: 12),
@@ -124,82 +127,6 @@ class _HomePageState extends State<HomePage> {
                                 value: '$totalMembers',
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 18),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.06)
-                                  : Colors.white.withValues(alpha: 0.75),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.08)
-                                    : const Color(0xFFD9E6EF),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.08)
-                                        : colorScheme.primary.withValues(
-                                            alpha: 0.10,
-                                          ),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.task_alt,
-                                    color: isDark
-                                        ? const Color(0xFF77FFD8)
-                                        : colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'This month collection',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: colorScheme.onSurface
-                                              .withValues(alpha: 0.62),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '$paidMembers/$totalMembers paid',
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  totalMembers == 0
-                                      ? '0%'
-                                      : '${((paidMembers / totalMembers) * 100).round()}%',
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? const Color(0xFF77FFD8)
-                                        : colorScheme.primary,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         ],
                       ),
@@ -317,7 +244,7 @@ class _HomePageState extends State<HomePage> {
                                             color: active
                                                 ? colorScheme.onPrimary
                                                 : colorScheme.onSurface
-                                                    .withValues(alpha: 0.7),
+                                                      .withValues(alpha: 0.7),
                                           ),
                                         ),
                                         const SizedBox(width: 14),
@@ -385,8 +312,9 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           ),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
                                           ),
                                           color: isDark
                                               ? const Color(0xFF142033)
@@ -471,14 +399,18 @@ class _HomePageState extends State<HomePage> {
 
   void _deleteTracker(String trackerId) {
     final all = box.get('trackkars', defaultValue: {}) as Map;
-    final tracker = all[trackerId] != null ? Tracker.fromMap(all[trackerId]) : null;
+    final tracker = all[trackerId] != null
+        ? Tracker.fromMap(all[trackerId])
+        : null;
     all.remove(trackerId);
     box.put('trackkars', all);
     NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(
       context,
-      message: tracker == null ? 'Tracker deleted.' : '${tracker.title} deleted.',
+      message: tracker == null
+          ? 'Tracker deleted.'
+          : '${tracker.title} deleted.',
       icon: Icons.delete_outline,
     );
   }
@@ -600,10 +532,7 @@ class _EmptyState extends StatelessWidget {
                     Colors.white.withValues(alpha: 0.10),
                     Colors.white.withValues(alpha: 0.03),
                   ]
-                : [
-                    Colors.white,
-                    const Color(0xFFF2F7FB),
-                  ],
+                : [Colors.white, const Color(0xFFF2F7FB)],
           ),
           border: Border.all(
             color: isDark
@@ -650,9 +579,7 @@ class _EmptyState extends StatelessWidget {
             Text.rich(
               TextSpan(
                 children: [
-                  const TextSpan(
-                    text: 'Create your first tracker using the ',
-                  ),
+                  const TextSpan(text: 'Create your first tracker using the '),
                   WidgetSpan(
                     alignment: PlaceholderAlignment.middle,
                     child: Container(
