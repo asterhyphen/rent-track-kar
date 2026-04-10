@@ -1,8 +1,17 @@
 # Rent Track-Kar
 This is an app which helps users track group expenses like rent, electricity bill or shared subscriptions. <br>
-The app initially started as a vibecoded mess and a single prompt 
+The app initially started as a vibecoded mess and a single prompt and has went to multiple revisions and this is currently the version it is sitting on.
+
+<Adding Screeshots here later>
+
 # Working
-- 
+- Create a trackkar and select your required options
+- Add groups *(ex: roommates)* such that you don't have to manually enter the same people multiple times for a set group of people.
+- Add one person in multiple groups </br>
+*(Ex: in ` Rent ` as well as in ` Electricity `)
+- Send message directly across any social platform.
+- Customise the message in settings.
+
 
 # Download
 -> Android APK: [asterhyphen.xyz/app/renttrackkar](https://asterhyphen.xyz/app/renttrackkar)
