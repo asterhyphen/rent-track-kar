@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import '../services/notification_service.dart';
 import '../widgets/app_alert.dart';
 import 'models.dart';
+import 'users.dart';
 
 const trackerIcons = {
   'Bill': Icons.receipt_long,
@@ -61,7 +62,8 @@ class _TrackerPageState extends State<TrackerPage> {
   bool iconManuallySelected = false;
 
   List<String> get _savedUsers {
-    final raw = Hive.box('app').get('savedUsers', defaultValue: <String>[]) as List;
+    final raw =
+        Hive.box('app').get('savedUsers', defaultValue: <String>[]) as List;
     return normalizeNames(raw);
   }
 
@@ -71,6 +73,16 @@ class _TrackerPageState extends State<TrackerPage> {
             as Map;
     return raw.values.map((value) => UserGroup.fromMap(value)).toList()
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
+  Future<void> _openUsersPage() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const UsersPage()),
+    );
+
+    if (!mounted) return;
+    setState(() {});
   }
 
   @override
@@ -184,6 +196,26 @@ class _TrackerPageState extends State<TrackerPage> {
                   ),
                 ],
                 const SizedBox(height: 14),
+                const SizedBox(height: 14),
+                if (savedGroups.isNotEmpty || savedUsers.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Select from saved groups or users',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _openUsersPage,
+                        child: const Text('Manage saved users'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                ],
                 if (savedGroups.isNotEmpty) ...[
                   Row(
                     children: [
@@ -310,6 +342,48 @@ class _TrackerPageState extends State<TrackerPage> {
                         },
                       );
                     }).toList(),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                if (savedGroups.isEmpty && savedUsers.isEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : Colors.white.withValues(alpha: 0.82),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : const Color(0xFFD9E6EF),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Save users before creating trackers',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Go to the Users page to save people or create groups, then pick them here when making a new tracker.',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withValues(
+                              alpha: 0.72,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          onPressed: _openUsersPage,
+                          child: const Text('Open Users page'),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 14),
                 ],

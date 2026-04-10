@@ -17,7 +17,7 @@ class _AppShellState extends State<AppShell> {
 
   static const _titles = ['Trackkars', 'Users', 'Settings'];
   static const _subtitles = [
-    'List and manage all your tracckars',
+    'List and manage all your trackkars',
     'Manage users and groups',
     'Personalise your experience',
   ];

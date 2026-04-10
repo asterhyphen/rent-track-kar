@@ -141,7 +141,7 @@ class _UsersPageState extends State<UsersPage> {
               context,
               title: 'Groups',
               actionLabel: users.isEmpty ? null : 'Create Group',
-              onAction: users.isEmpty ? null : _showCreateGroupSheet,
+              onAction: users.isEmpty ? null : () => _showGroupSheet(),
               child: groups.isEmpty
                   ? _emptyBody(
                       context,
@@ -252,9 +252,15 @@ class _UsersPageState extends State<UsersPage> {
                                   onSelected: (value) {
                                     if (value == 'delete') {
                                       _deleteGroup(group.id, group.name);
+                                    } else if (value == 'edit') {
+                                      _showGroupSheet(group: group);
                                     }
                                   },
                                   itemBuilder: (context) => const [
+                                    PopupMenuItem<String>(
+                                      value: 'edit',
+                                      child: Text('Edit Group'),
+                                    ),
                                     PopupMenuItem<String>(
                                       value: 'delete',
                                       child: Text('Delete Group'),
@@ -467,10 +473,12 @@ class _UsersPageState extends State<UsersPage> {
     showAppAlert(context, message: '$name has been added to saved users.');
   }
 
-  Future<void> _showCreateGroupSheet() async {
-    final nameCtrl = TextEditingController();
+  Future<void> _showGroupSheet({UserGroup? group}) async {
+    final nameCtrl = TextEditingController(text: group?.name ?? '');
     final savedUsers = _savedUsers;
-    final selectedUsers = <String>{};
+    final selectedUsers = group == null
+        ? <String>{}
+        : Set<String>.from(group.members);
 
     await showModalBottomSheet<void>(
       context: context,
@@ -488,7 +496,7 @@ class _UsersPageState extends State<UsersPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Create Group',
+                group == null ? 'Create Group' : 'Edit Group',
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -534,10 +542,11 @@ class _UsersPageState extends State<UsersPage> {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: () => _saveGroupFromSheet(
+                    groupId: group?.id,
                     groupName: nameCtrl.text,
                     members: selectedUsers.toList(),
                   ),
-                  child: const Text('Create Group'),
+                  child: Text(group == null ? 'Create Group' : 'Save Changes'),
                 ),
               ),
             ],
@@ -548,6 +557,7 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   void _saveGroupFromSheet({
+    String? groupId,
     required String groupName,
     required List<String> members,
   }) {
@@ -579,7 +589,11 @@ class _UsersPageState extends State<UsersPage> {
 
     final alreadyExists = groupsMap.values
         .map((value) => UserGroup.fromMap(value))
-        .any((group) => group.name.toLowerCase() == name.toLowerCase());
+        .any(
+          (group) =>
+              group.name.toLowerCase() == name.toLowerCase() &&
+              group.id != groupId,
+        );
 
     if (alreadyExists) {
       showAppAlert(
@@ -591,17 +605,19 @@ class _UsersPageState extends State<UsersPage> {
       return;
     }
 
-    final group = UserGroup(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: name,
-      members: normalizedMembers,
-    );
+    final id = groupId ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final group = UserGroup(id: id, name: name, members: normalizedMembers);
 
     groupsMap[group.id] = group.toMap();
     box.put('userGroups', groupsMap);
     Navigator.pop(context);
     setState(() {});
-    showAppAlert(context, message: '$name group created.');
+    showAppAlert(
+      context,
+      message: groupId == null
+          ? '$name group created.'
+          : '$name group updated.',
+    );
   }
 
   void _deleteUser(String user) {
