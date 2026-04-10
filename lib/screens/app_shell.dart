@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'archive.dart';
 import 'home.dart';
 import 'settings.dart';
 import 'tracker.dart';
@@ -47,6 +48,11 @@ class _AppShellState extends State<AppShell> {
         ),
         actions: _currentIndex == 0
             ? [
+                IconButton(
+                  tooltip: 'Archive',
+                  onPressed: _openArchive,
+                  icon: const Icon(Icons.archive_outlined),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: FilledButton.icon(
@@ -103,6 +109,16 @@ class _AppShellState extends State<AppShell> {
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const TrackerPage()),
+    );
+
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _openArchive() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ArchivePage()),
     );
 
     if (!mounted) return;

@@ -371,6 +371,7 @@ class _TrackerPageState extends State<TrackerPage> {
       users: List<String>.from(users)
         ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
       iconCode: iconCode,
+      archived: false,
     );
 
     final all = box.get('trackers', defaultValue: {});

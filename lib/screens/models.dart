@@ -24,6 +24,7 @@ class Tracker {
   final DateTime dueDate;
   final List<String> users;
   final int iconCode;
+  final bool archived;
 
   Tracker({
     required this.id,
@@ -33,6 +34,7 @@ class Tracker {
     required this.dueDate,
     required this.users,
     required this.iconCode,
+    required this.archived,
   });
 
   Tracker copyWith({
@@ -41,6 +43,7 @@ class Tracker {
     DateTime? dueDate,
     List<String>? users,
     int? iconCode,
+    bool? archived,
   }) {
     return Tracker(
       id: id,
@@ -50,6 +53,7 @@ class Tracker {
       dueDate: dueDate ?? this.dueDate,
       users: users ?? this.users,
       iconCode: iconCode ?? this.iconCode,
+      archived: archived ?? this.archived,
     );
   }
 
@@ -61,6 +65,7 @@ class Tracker {
     'dueDate': dueDate.toIso8601String(),
     'users': users,
     'icon': iconCode,
+    'archived': archived,
   };
 
   static Tracker fromMap(Map map) => Tracker(
@@ -71,5 +76,6 @@ class Tracker {
     dueDate: DateTime.parse(map['dueDate']),
     users: List<String>.from(map['users']).map(formatName).toList(),
     iconCode: map['icon'] ?? Icons.receipt_long.codePoint,
+    archived: map['archived'] == true,
   );
 }

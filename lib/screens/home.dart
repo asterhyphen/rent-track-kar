@@ -22,7 +22,10 @@ class _HomePageState extends State<HomePage> {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final raw = box.get('trackers', defaultValue: {}) as Map;
-    final trackers = raw.values.map((e) => Tracker.fromMap(e)).toList()
+    final trackers = raw.values
+        .map((e) => Tracker.fromMap(e))
+        .where((tracker) => !tracker.archived)
+        .toList()
       ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
 
     final settings = AppSettings.fromMap(box.get('settings'));
@@ -350,7 +353,29 @@ class _HomePageState extends State<HomePage> {
                                             ],
                                           ),
                                         ),
-                                        const Icon(Icons.chevron_right),
+                                        PopupMenuButton<String>(
+                                          onSelected: (value) {
+                                            if (value == 'archive') {
+                                              _updateTracker(
+                                                tracker.copyWith(
+                                                  archived: true,
+                                                ),
+                                              );
+                                            } else if (value == 'delete') {
+                                              _deleteTracker(tracker.id);
+                                            }
+                                          },
+                                          itemBuilder: (context) => const [
+                                            PopupMenuItem<String>(
+                                              value: 'archive',
+                                              child: Text('Archive'),
+                                            ),
+                                            PopupMenuItem<String>(
+                                              value: 'delete',
+                                              child: Text('Delete'),
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                     const SizedBox(height: 14),
@@ -361,15 +386,6 @@ class _HomePageState extends State<HomePage> {
                                           icon: Icons.people_alt_outlined,
                                           label:
                                               '$totalCount member${totalCount == 1 ? '' : 's'}',
-                                        ),
-                                        const SizedBox(width: 8),
-                                        _chipLabel(
-                                          context: context,
-                                          icon: Icons.calendar_month_outlined,
-                                          label: active
-                                              ? 'Active'
-                                              : 'Pending',
-                                          highlighted: active,
                                         ),
                                       ],
                                     ),
@@ -405,6 +421,20 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void _updateTracker(Tracker tracker) {
+    final all = box.get('trackers', defaultValue: {}) as Map;
+    all[tracker.id] = tracker.toMap();
+    box.put('trackers', all);
+    setState(() {});
+  }
+
+  void _deleteTracker(String trackerId) {
+    final all = box.get('trackers', defaultValue: {}) as Map;
+    all.remove(trackerId);
+    box.put('trackers', all);
+    setState(() {});
   }
 
   int _activeCount(List<Tracker> trackers, String monthKey) {
@@ -461,7 +491,6 @@ class _HomePageState extends State<HomePage> {
     required BuildContext context,
     required IconData icon,
     required String label,
-    bool highlighted = false,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -469,18 +498,14 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: highlighted
-            ? const Color(0xFF00B894).withValues(alpha: 0.14)
-            : (isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.white.withValues(alpha: 0.72)),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-          color: highlighted
-              ? const Color(0xFF00E0B2).withValues(alpha: 0.35)
-              : (isDark
-                    ? Colors.white.withValues(alpha: 0.07)
-                    : const Color(0xFFD7E3EB)),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.07)
+              : const Color(0xFFD7E3EB),
         ),
       ),
       child: Row(
@@ -489,11 +514,7 @@ class _HomePageState extends State<HomePage> {
           Icon(
             icon,
             size: 15,
-            color: highlighted
-                ? (isDark
-                      ? const Color(0xFF77FFD8)
-                      : theme.colorScheme.primary)
-                : theme.colorScheme.onSurface.withValues(alpha: 0.68),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
           ),
           const SizedBox(width: 6),
           Text(
@@ -501,11 +522,7 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: highlighted
-                  ? (isDark
-                        ? const Color(0xFF77FFD8)
-                        : theme.colorScheme.primary)
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.68),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
             ),
           ),
         ],
