@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'screens/home.dart';
+import 'screens/app_shell.dart';
 import 'screens/app_settings.dart';
 
 void main() async {
@@ -15,22 +15,25 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final darkScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF00B894),
+      brightness: Brightness.dark,
+    );
+    final lightScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF00B894),
+      brightness: Brightness.light,
+    );
+
     final darkBase = ThemeData(
       useMaterial3: true,
       fontFamily: 'Avenir',
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF00B894),
-        brightness: Brightness.dark,
-      ),
+      colorScheme: darkScheme,
     );
 
     final lightBase = ThemeData(
       useMaterial3: true,
       fontFamily: 'Avenir',
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF00B894),
-        brightness: Brightness.light,
-      ),
+      colorScheme: lightScheme,
     );
 
     final box = Hive.box('app');
@@ -44,10 +47,22 @@ class MyApp extends StatelessWidget {
           themeMode: settings.materialThemeMode,
           theme: lightBase.copyWith(
             scaffoldBackgroundColor: const Color(0xFFF4F8FB),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.transparent,
+            appBarTheme: AppBarTheme(
+              backgroundColor: lightScheme.surface.withValues(alpha: 0.88),
               elevation: 0,
               centerTitle: false,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              foregroundColor: lightScheme.onSurface,
+            ),
+            cardColor: Colors.white,
+            dividerColor: const Color(0xFFD8E1EA),
+            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+              backgroundColor: lightScheme.surface.withValues(alpha: 0.96),
+              selectedItemColor: lightScheme.primary,
+              unselectedItemColor: lightScheme.onSurface.withValues(alpha: 0.6),
+              showUnselectedLabels: true,
+              type: BottomNavigationBarType.fixed,
             ),
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
@@ -73,10 +88,22 @@ class MyApp extends StatelessWidget {
           ),
           darkTheme: darkBase.copyWith(
             scaffoldBackgroundColor: const Color(0xFF090F1B),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.transparent,
+            appBarTheme: AppBarTheme(
+              backgroundColor: darkScheme.surface.withValues(alpha: 0.72),
               elevation: 0,
               centerTitle: false,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              foregroundColor: darkScheme.onSurface,
+            ),
+            cardColor: const Color(0xFF111A2B),
+            dividerColor: Colors.white.withValues(alpha: 0.08),
+            bottomNavigationBarTheme: BottomNavigationBarThemeData(
+              backgroundColor: darkScheme.surface.withValues(alpha: 0.92),
+              selectedItemColor: const Color(0xFF77FFD8),
+              unselectedItemColor: darkScheme.onSurface.withValues(alpha: 0.6),
+              showUnselectedLabels: true,
+              type: BottomNavigationBarType.fixed,
             ),
             inputDecorationTheme: InputDecorationTheme(
               filled: true,
@@ -100,7 +127,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
           ),
-          home: const HomePage(),
+          home: const AppShell(),
         );
       },
     );
