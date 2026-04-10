@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:share_plus/share_plus.dart';
+import '../widgets/app_alert.dart';
 import '../widgets/glass_card.dart';
 import 'app_settings.dart';
 import 'models.dart';
@@ -206,6 +207,7 @@ class _CyclePageState extends State<CyclePage> {
 
                   persist();
                   persistTracker();
+                  showAppAlert(context, message: 'Tracker updated.');
                   Navigator.pop(context);
                 },
                 child: const Text('Save changes'),

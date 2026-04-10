@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../widgets/app_alert.dart';
 import 'models.dart';
 
 const trackerIcons = {
@@ -377,6 +378,7 @@ class _TrackerPageState extends State<TrackerPage> {
     final all = box.get('trackers', defaultValue: {});
     all[id] = tracker.toMap();
     box.put('trackers', all);
+    showAppAlert(context, message: 'Tracker created.');
     Navigator.pop(context);
   }
 }

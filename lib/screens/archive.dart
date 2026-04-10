@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../widgets/app_alert.dart';
 import '../widgets/glass_card.dart';
 import 'models.dart';
 
@@ -141,12 +142,19 @@ class _ArchivePageState extends State<ArchivePage> {
     all[tracker.id] = tracker.toMap();
     box.put('trackers', all);
     setState(() {});
+    showAppAlert(context, message: '${tracker.title} restored.');
   }
 
   void _deleteTracker(String trackerId) {
     final all = box.get('trackers', defaultValue: {}) as Map;
+    final tracker = all[trackerId] != null ? Tracker.fromMap(all[trackerId]) : null;
     all.remove(trackerId);
     box.put('trackers', all);
     setState(() {});
+    showAppAlert(
+      context,
+      message: tracker == null ? 'Tracker deleted.' : '${tracker.title} deleted.',
+      icon: Icons.delete_outline,
+    );
   }
 }

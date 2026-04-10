@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 
 import 'app_settings.dart';
 import 'message_template_editor.dart';
+import '../widgets/app_alert.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -39,8 +40,10 @@ class _SettingsPageState extends State<SettingsPage> {
         ) ??
         '';
 
+    if (!mounted) return;
     if (updatedTemplate.trim().isEmpty) return;
     _save(settings.copyWith(messageTemplate: updatedTemplate));
+    showAppAlert(context, message: 'Message template updated.');
   }
 
   Future<void> _clearMonthlyData() async {
@@ -82,9 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Monthly records cleared.')));
+    showAppAlert(context, message: 'Monthly records cleared.');
   }
 
   @override
@@ -211,6 +212,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 showSelectedIcon: false,
                 onSelectionChanged: (selected) {
                   _save(settings.copyWith(themeMode: selected.first));
+                  showAppAlert(
+                    context,
+                    message: 'Theme set to ${selected.first}.',
+                    icon: Icons.palette_outlined,
+                  );
                 },
               ),
             ),
@@ -228,6 +234,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: const Text('Confirm before deleting tracker'),
                   onChanged: (value) {
                     _save(settings.copyWith(confirmDelete: value));
+                    showAppAlert(
+                      context,
+                      message: value
+                          ? 'Delete confirmation enabled.'
+                          : 'Delete confirmation disabled.',
+                    );
                   },
                 ),
                 const SizedBox(height: 8),

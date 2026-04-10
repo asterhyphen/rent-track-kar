@@ -64,11 +64,33 @@ class _AppShellState extends State<AppShell> {
         ),
       ),
       body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          HomePage(),
-          UsersPage(),
-          SettingsPage(),
+        index: 0,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 280),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.03, 0),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey(_currentIndex),
+              child: const [
+                HomePage(),
+                UsersPage(),
+                SettingsPage(),
+              ][_currentIndex],
+            ),
+          ),
         ],
       ),
       floatingActionButton: _currentIndex == 0

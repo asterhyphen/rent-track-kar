@@ -35,6 +35,15 @@ class MyApp extends StatelessWidget {
       fontFamily: 'Avenir',
       colorScheme: lightScheme,
     );
+    const pageTransitionsTheme = PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
+      },
+    );
 
     final box = Hive.box('app');
 
@@ -48,6 +57,7 @@ class MyApp extends StatelessWidget {
           themeAnimationCurve: Curves.easeInOutCubic,
           themeAnimationDuration: const Duration(milliseconds: 350),
           theme: lightBase.copyWith(
+            pageTransitionsTheme: pageTransitionsTheme,
             scaffoldBackgroundColor: const Color(0xFFF4F8FB),
             appBarTheme: AppBarTheme(
               backgroundColor: lightScheme.surface.withValues(alpha: 0.88),
@@ -89,6 +99,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
           darkTheme: darkBase.copyWith(
+            pageTransitionsTheme: pageTransitionsTheme,
             scaffoldBackgroundColor: const Color(0xFF090F1B),
             appBarTheme: AppBarTheme(
               backgroundColor: darkScheme.surface.withValues(alpha: 0.72),
