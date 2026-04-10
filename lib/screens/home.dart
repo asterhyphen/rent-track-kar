@@ -23,8 +23,8 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final raw = box.get('trackers', defaultValue: {}) as Map;
-    final trackers = raw.values
+    final raw = box.get('trackkars', defaultValue: {}) as Map;
+    final trackkars = raw.values
         .map((e) => Tracker.fromMap(e))
         .where((tracker) => !tracker.archived)
         .toList()
@@ -32,9 +32,9 @@ class _HomePageState extends State<HomePage> {
 
     final settings = AppSettings.fromMap(box.get('settings'));
     final monthKey = '${DateTime.now().year}-${DateTime.now().month}';
-    final totalMembers = _userCount(trackers);
-    final paidMembers = _paidUserCount(trackers, monthKey);
-    final activeTrackers = _activeCount(trackers, monthKey);
+    final totalMembers = _userCount(trackkars);
+    final paidMembers = _paidUserCount(trackkars, monthKey);
+    final activeTrackers = _activeCount(trackkars, monthKey);
 
     return Container(
       decoration: BoxDecoration(
@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> {
         top: false,
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: trackers.isEmpty
+          child: trackkars.isEmpty
               ? const Center(child: _EmptyState())
               : Column(
                   children: [
@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                               _statTile(
                                 context,
                                 label: 'Total',
-                                value: '${trackers.length}',
+                                value: '${trackkars.length}',
                               ),
                               const SizedBox(width: 12),
                               _statTile(
@@ -208,10 +208,10 @@ class _HomePageState extends State<HomePage> {
                     Expanded(
                       child: ListView.builder(
                         physics: const BouncingScrollPhysics(),
-                        itemCount: trackers.length,
+                        itemCount: trackkars.length,
                         padding: const EdgeInsets.only(bottom: 24),
                         itemBuilder: (c, i) {
-                          final tracker = trackers[i];
+                          final tracker = trackkars[i];
                           final monthlyKey = '${tracker.id}_$monthKey';
                           final active = box.containsKey(monthlyKey);
                           final monthlyData = active
@@ -258,9 +258,9 @@ class _HomePageState extends State<HomePage> {
                                     false;
                               },
                               onDismissed: (_) {
-                                final all = box.get('trackers');
+                                final all = box.get('trackkars');
                                 all.remove(tracker.id);
-                                box.put('trackers', all);
+                                box.put('trackkars', all);
                                 NotificationService.instance.syncForAllTrackers(
                                   box,
                                 );
@@ -461,19 +461,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _updateTracker(Tracker tracker) {
-    final all = box.get('trackers', defaultValue: {}) as Map;
+    final all = box.get('trackkars', defaultValue: {}) as Map;
     all[tracker.id] = tracker.toMap();
-    box.put('trackers', all);
+    box.put('trackkars', all);
     NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(context, message: '${tracker.title} moved to archive.');
   }
 
   void _deleteTracker(String trackerId) {
-    final all = box.get('trackers', defaultValue: {}) as Map;
+    final all = box.get('trackkars', defaultValue: {}) as Map;
     final tracker = all[trackerId] != null ? Tracker.fromMap(all[trackerId]) : null;
     all.remove(trackerId);
-    box.put('trackers', all);
+    box.put('trackkars', all);
     NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(
@@ -483,18 +483,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  int _activeCount(List<Tracker> trackers, String monthKey) {
-    return trackers.where((t) => box.containsKey('${t.id}_$monthKey')).length;
+  int _activeCount(List<Tracker> trackkars, String monthKey) {
+    return trackkars.where((t) => box.containsKey('${t.id}_$monthKey')).length;
   }
 
-  int _userCount(List<Tracker> trackers) {
-    return trackers.fold<int>(0, (sum, t) => sum + t.users.length);
+  int _userCount(List<Tracker> trackkars) {
+    return trackkars.fold<int>(0, (sum, t) => sum + t.users.length);
   }
 
-  int _paidUserCount(List<Tracker> trackers, String monthKey) {
+  int _paidUserCount(List<Tracker> trackkars, String monthKey) {
     var total = 0;
 
-    for (final tracker in trackers) {
+    for (final tracker in trackkars) {
       final monthlyData = box.get('${tracker.id}_$monthKey');
       if (monthlyData == null) continue;
 

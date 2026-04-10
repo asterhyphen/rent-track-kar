@@ -21,8 +21,8 @@ class _ArchivePageState extends State<ArchivePage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final raw = box.get('trackers', defaultValue: {}) as Map;
-    final trackers = raw.values
+    final raw = box.get('trackkars', defaultValue: {}) as Map;
+    final trackkars = raw.values
         .map((e) => Tracker.fromMap(e))
         .where((tracker) => tracker.archived)
         .toList()
@@ -41,12 +41,12 @@ class _ArchivePageState extends State<ArchivePage> {
           ),
         ),
         child: SafeArea(
-          child: trackers.isEmpty
+          child: trackkars.isEmpty
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
                     child: Text(
-                      'No archived trackers yet.',
+                      'No archived trackkars yet.',
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
@@ -55,9 +55,9 @@ class _ArchivePageState extends State<ArchivePage> {
                 )
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: trackers.length,
+                  itemCount: trackkars.length,
                   itemBuilder: (context, index) {
-                    final tracker = trackers[index];
+                    final tracker = trackkars[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: GlassCard(
@@ -166,19 +166,19 @@ class _ArchivePageState extends State<ArchivePage> {
   }
 
   void _updateTracker(Tracker tracker) {
-    final all = box.get('trackers', defaultValue: {}) as Map;
+    final all = box.get('trackkars', defaultValue: {}) as Map;
     all[tracker.id] = tracker.toMap();
-    box.put('trackers', all);
+    box.put('trackkars', all);
     NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(context, message: '${tracker.title} restored.');
   }
 
   void _deleteTracker(String trackerId) {
-    final all = box.get('trackers', defaultValue: {}) as Map;
+    final all = box.get('trackkars', defaultValue: {}) as Map;
     final tracker = all[trackerId] != null ? Tracker.fromMap(all[trackerId]) : null;
     all.remove(trackerId);
-    box.put('trackers', all);
+    box.put('trackkars', all);
     NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(

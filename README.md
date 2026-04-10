@@ -1,6 +1,6 @@
 # Rent Track-Kar
-This is an app which helps users track group expenses like rent, electricity bill or shared subscriptions. <br>
-The app initially started as a vibecoded mess and a single prompt and has went to multiple revisions and this is currently the version it is sitting on.
+This is an app which helps users track group expenses like rent, electricity bill or shared subscriptions. <br><br>
+The app initially started as a vibecoded mess + a single prompt and has went through multiple revisions and this is currently the version it is sitting on.
 
 <Adding Screeshots here later>
 
@@ -20,3 +20,5 @@ The app initially started as a vibecoded mess and a single prompt and has went t
 # Contribution
 Feel free to create issues for feature requests or to report bugs. </br>
 PRs are appreciated but may take some time to review.
+
+> *I know my humour and puns are horrible across the app, you don't have to let me know 😭* 

@@ -101,13 +101,13 @@ class NotificationService {
     final settings = AppSettings.fromMap(box.get('settings'));
     if (!settings.notificationsEnabled) return;
 
-    final raw = box.get('trackers', defaultValue: {}) as Map;
-    final trackers = raw.values
+    final raw = box.get('trackkars', defaultValue: {}) as Map;
+    final trackkars = raw.values
         .map((value) => Tracker.fromMap(value))
         .where((tracker) => !tracker.archived)
         .toList();
 
-    for (final tracker in trackers) {
+    for (final tracker in trackkars) {
       await _scheduleTrackerReminders(tracker, settings.reminderDaysBefore);
     }
   }

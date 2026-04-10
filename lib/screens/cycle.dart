@@ -44,7 +44,7 @@ class _CyclePageState extends State<CyclePage> {
   @override
   void initState() {
     super.initState();
-    tracker = Tracker.fromMap(box.get('trackers')[widget.trackerId]);
+    tracker = Tracker.fromMap(box.get('trackkars')[widget.trackerId]);
 
     tracker = tracker.copyWith(
       users: List<String>.from(tracker.users)
@@ -73,9 +73,9 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   void persistTracker() {
-    final all = box.get('trackers');
+    final all = box.get('trackkars');
     all[tracker.id] = tracker.toMap();
-    box.put('trackers', all);
+    box.put('trackkars', all);
   }
 
   void openEditTracker() {

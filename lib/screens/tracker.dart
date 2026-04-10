@@ -571,9 +571,9 @@ class _TrackerPageState extends State<TrackerPage> {
       archived: false,
     );
 
-    final all = box.get('trackers', defaultValue: {});
+    final all = box.get('trackkars', defaultValue: {});
     all[id] = tracker.toMap();
-    box.put('trackers', all);
+    box.put('trackkars', all);
     NotificationService.instance.syncForAllTrackers(box);
     showAppAlert(context, message: 'Tracker created.');
     Navigator.pop(context);

@@ -82,7 +82,7 @@ class _UsersPageState extends State<UsersPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Save people once, then reuse them while creating trackers.',
+                              'Save people once, then reuse them while creating trackkars.',
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: colorScheme.onSurface.withValues(
                                   alpha: 0.68,

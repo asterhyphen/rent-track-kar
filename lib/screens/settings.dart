@@ -55,7 +55,7 @@ class _SettingsPageState extends State<SettingsPage> {
           builder: (ctx) => AlertDialog(
             title: const Text('Clear monthly records?'),
             content: const Text(
-              'This removes paid and pending records for all months, but keeps your trackers.',
+              'This removes paid and pending records for all months, but keeps your trackkars.',
             ),
             actions: [
               TextButton(
@@ -73,13 +73,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (!shouldClear) return;
 
-    final trackers = Map<String, dynamic>.from(
-      box.get('trackers', defaultValue: <String, dynamic>{}) as Map,
+    final trackkars = Map<String, dynamic>.from(
+      box.get('trackkars', defaultValue: <String, dynamic>{}) as Map,
     );
-    final trackerIds = trackers.keys.toSet();
+    final trackerIds = trackkars.keys.toSet();
 
     for (final key in box.keys.toList()) {
-      if (key is! String || key == 'trackers' || key == 'settings') continue;
+      if (key is! String || key == 'trackkars' || key == 'settings') continue;
       final idPart = key.split('_').first;
       if (trackerIds.contains(idPart)) {
         box.delete(key);
