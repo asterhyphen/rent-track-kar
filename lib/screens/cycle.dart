@@ -6,7 +6,6 @@ import '../widgets/app_alert.dart';
 import '../widgets/glass_card.dart';
 import 'app_settings.dart';
 import 'models.dart';
-import 'tracker.dart';
 
 class CyclePage extends StatefulWidget {
   final String trackerId;
@@ -66,10 +65,7 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   void persist() {
-    box.put('${tracker.id}_$monthKey', {
-      'paid': paid,
-      'total': total,
-    });
+    box.put('${tracker.id}_$monthKey', {'paid': paid, 'total': total});
   }
 
   void persistTracker() {
@@ -85,7 +81,7 @@ class _CyclePageState extends State<CyclePage> {
     );
     final users = List<String>.from(tracker.users);
     DateTime newDue = tracker.dueDate;
-    int icon = tracker.iconCode;
+    String iconId = tracker.iconId;
 
     showModalBottomSheet(
       context: context,
@@ -167,10 +163,10 @@ class _CyclePageState extends State<CyclePage> {
               Wrap(
                 spacing: 12,
                 children: trackerIcons.entries.map((e) {
-                  final selected = icon == e.value.codePoint;
+                  final selected = iconId == e.key;
                   return GestureDetector(
-                    onTap: () => setModal(() => icon = e.value.codePoint),
-                      child: CircleAvatar(
+                    onTap: () => setModal(() => iconId = e.key),
+                    child: CircleAvatar(
                       radius: 22,
                       backgroundColor: selected
                           ? Theme.of(context).colorScheme.primary
@@ -200,7 +196,7 @@ class _CyclePageState extends State<CyclePage> {
                         ..sort(
                           (a, b) => a.toLowerCase().compareTo(b.toLowerCase()),
                         ),
-                      iconCode: icon,
+                      iconId: iconId,
                     );
                     due = recurringDueDateForMonth(newDue, DateTime.now());
                     total = tracker.amount ?? total;
@@ -278,7 +274,7 @@ class _CyclePageState extends State<CyclePage> {
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(IconData(tracker.iconCode, fontFamily: 'MaterialIcons')),
+            Icon(iconDataFromId(tracker.iconId)),
             const SizedBox(width: 12),
             Text(tracker.title),
           ],
@@ -316,7 +312,9 @@ class _CyclePageState extends State<CyclePage> {
                         Text(
                           'Total',
                           style: TextStyle(
-                            color: colorScheme.onSurface.withValues(alpha: 0.68),
+                            color: colorScheme.onSurface.withValues(
+                              alpha: 0.68,
+                            ),
                           ),
                         ),
                         const Spacer(),
@@ -335,7 +333,9 @@ class _CyclePageState extends State<CyclePage> {
                         Text(
                           'Per Head',
                           style: TextStyle(
-                            color: colorScheme.onSurface.withValues(alpha: 0.68),
+                            color: colorScheme.onSurface.withValues(
+                              alpha: 0.68,
+                            ),
                           ),
                         ),
                         const Spacer(),
@@ -355,7 +355,9 @@ class _CyclePageState extends State<CyclePage> {
                         Text(
                           'Progress',
                           style: TextStyle(
-                            color: colorScheme.onSurface.withValues(alpha: 0.68),
+                            color: colorScheme.onSurface.withValues(
+                              alpha: 0.68,
+                            ),
                           ),
                         ),
                         const Spacer(),

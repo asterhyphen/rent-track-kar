@@ -1,5 +1,42 @@
 import 'package:flutter/material.dart';
 
+const trackerIcons = {
+  'Bill': Icons.receipt_long,
+  'Electricity': Icons.bolt,
+  'Rent': Icons.home,
+  'Music': Icons.music_note,
+  'Movies': Icons.movie,
+  'Internet': Icons.wifi,
+  'Food': Icons.restaurant,
+};
+
+IconData iconDataFromId(String id) => trackerIcons[id] ?? Icons.receipt_long;
+
+String autoIconIdFromText(String text) {
+  final t = text.toLowerCase();
+
+  if (RegExp(r'\b(electric|electricity|power|current|bill)\b').hasMatch(t)) {
+    return 'Electricity';
+  }
+  if (RegExp(r'\b(rent|house|home|flat|room)\b').hasMatch(t)) {
+    return 'Rent';
+  }
+  if (RegExp(r'\b(wifi|internet|broadband|fiber|network)\b').hasMatch(t)) {
+    return 'Internet';
+  }
+  if (RegExp(r'\b(music|spotify|song|playlist)\b').hasMatch(t)) {
+    return 'Music';
+  }
+  if (RegExp(r'\b(movie|film|cinema|netflix|prime)\b').hasMatch(t)) {
+    return 'Movies';
+  }
+  if (RegExp(r'\b(food|lunch|dinner|meal|restaurant)\b').hasMatch(t)) {
+    return 'Food';
+  }
+
+  return 'Bill';
+}
+
 String formatName(String input) {
   if (input.trim().isEmpty) return '';
   return input
@@ -43,11 +80,7 @@ class UserGroup {
     required this.members,
   });
 
-  UserGroup copyWith({
-    String? id,
-    String? name,
-    List<String>? members,
-  }) {
+  UserGroup copyWith({String? id, String? name, List<String>? members}) {
     return UserGroup(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -55,11 +88,7 @@ class UserGroup {
     );
   }
 
-  Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': name,
-    'members': members,
-  };
+  Map<String, dynamic> toMap() => {'id': id, 'name': name, 'members': members};
 
   static UserGroup fromMap(Map map) => UserGroup(
     id: '${map['id']}',
@@ -75,7 +104,7 @@ class Tracker {
   final DateTime startDate;
   final DateTime dueDate;
   final List<String> users;
-  final int iconCode;
+  final String iconId;
   final bool archived;
 
   Tracker({
@@ -85,7 +114,7 @@ class Tracker {
     required this.startDate,
     required this.dueDate,
     required this.users,
-    required this.iconCode,
+    required this.iconId,
     required this.archived,
   });
 
@@ -94,7 +123,7 @@ class Tracker {
     int? amount,
     DateTime? dueDate,
     List<String>? users,
-    int? iconCode,
+    String? iconId,
     bool? archived,
   }) {
     return Tracker(
@@ -104,7 +133,7 @@ class Tracker {
       startDate: startDate,
       dueDate: dueDate ?? this.dueDate,
       users: users == null ? this.users : normalizeNames(users),
-      iconCode: iconCode ?? this.iconCode,
+      iconId: iconId ?? this.iconId,
       archived: archived ?? this.archived,
     );
   }
@@ -116,18 +145,32 @@ class Tracker {
     'startDate': startDate.toIso8601String(),
     'dueDate': dueDate.toIso8601String(),
     'users': users,
-    'icon': iconCode,
+    'icon': iconId,
     'archived': archived,
   };
 
-  static Tracker fromMap(Map map) => Tracker(
-    id: map['id'],
-    title: formatName(map['title']),
-    amount: map['amount'],
-    startDate: DateTime.parse(map['startDate']),
-    dueDate: DateTime.parse(map['dueDate']),
-    users: normalizeNames(List<String>.from(map['users'] ?? const [])),
-    iconCode: map['icon'] ?? Icons.receipt_long.codePoint,
-    archived: map['archived'] == true,
-  );
+  static Tracker fromMap(Map map) {
+    final iconRaw = map['icon'];
+    final iconId = iconRaw is String
+        ? iconRaw
+        : (iconRaw is int
+              ? trackerIcons.entries
+                    .firstWhere(
+                      (entry) => entry.value.codePoint == iconRaw,
+                      orElse: () => const MapEntry('Bill', Icons.receipt_long),
+                    )
+                    .key
+              : 'Bill');
+
+    return Tracker(
+      id: map['id'],
+      title: formatName(map['title']),
+      amount: map['amount'],
+      startDate: DateTime.parse(map['startDate']),
+      dueDate: DateTime.parse(map['dueDate']),
+      users: normalizeNames(List<String>.from(map['users'] ?? const [])),
+      iconId: iconId,
+      archived: map['archived'] == true,
+    );
+  }
 }

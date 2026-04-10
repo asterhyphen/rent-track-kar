@@ -11,6 +11,7 @@ The app initially started as a vibecoded mess + a single prompt and has went thr
 *(Ex: in ` Rent ` as well as in ` Electricity `)*
 - Send message directly across any social platform.
 - Customise the message in settings.
+- Archive any trackkars if you want.
 
 
 # Download

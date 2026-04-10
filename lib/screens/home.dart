@@ -36,7 +36,6 @@ class _HomePageState extends State<HomePage> {
     final settings = AppSettings.fromMap(box.get('settings'));
     final monthKey = '${DateTime.now().year}-${DateTime.now().month}';
     final totalMembers = _userCount(trackkars);
-    final paidMembers = _paidUserCount(trackkars, monthKey);
     final activeTrackers = _activeCount(trackkars, monthKey);
 
     return Container(
@@ -237,10 +236,7 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           ),
                                           child: Icon(
-                                            IconData(
-                                              tracker.iconCode,
-                                              fontFamily: 'MaterialIcons',
-                                            ),
+                                            iconDataFromId(tracker.iconId),
                                             color: active
                                                 ? colorScheme.onPrimary
                                                 : colorScheme.onSurface
@@ -421,22 +417,6 @@ class _HomePageState extends State<HomePage> {
 
   int _userCount(List<Tracker> trackkars) {
     return trackkars.fold<int>(0, (sum, t) => sum + t.users.length);
-  }
-
-  int _paidUserCount(List<Tracker> trackkars, String monthKey) {
-    var total = 0;
-
-    for (final tracker in trackkars) {
-      final monthlyData = box.get('${tracker.id}_$monthKey');
-      if (monthlyData == null) continue;
-
-      final paidMap = Map<String, dynamic>.from(
-        monthlyData['paid'] ?? <String, dynamic>{},
-      );
-      total += paidMap.values.where((value) => value == true).length;
-    }
-
-    return total;
   }
 
   Widget _statTile(

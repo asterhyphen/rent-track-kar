@@ -76,10 +76,7 @@ class _ArchivePageState extends State<ArchivePage> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Icon(
-                                IconData(
-                                  tracker.iconCode,
-                                  fontFamily: 'MaterialIcons',
-                                ),
+                                iconDataFromId(tracker.iconId),
                                 color: colorScheme.onSurface.withValues(
                                   alpha: 0.72,
                                 ),

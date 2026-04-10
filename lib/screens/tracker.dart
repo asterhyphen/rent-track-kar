@@ -6,41 +6,6 @@ import '../widgets/app_alert.dart';
 import 'models.dart';
 import 'users.dart';
 
-const trackerIcons = {
-  'Bill': Icons.receipt_long,
-  'Electricity': Icons.bolt,
-  'Rent': Icons.home,
-  'Music': Icons.music_note,
-  'Movies': Icons.movie,
-  'Internet': Icons.wifi,
-  'Food': Icons.restaurant,
-};
-
-int autoIconFromText(String text) {
-  final t = text.toLowerCase();
-
-  if (RegExp(r'\b(electric|electricity|power|current|bill)\b').hasMatch(t)) {
-    return Icons.bolt.codePoint;
-  }
-  if (RegExp(r'\b(rent|house|home|flat|room)\b').hasMatch(t)) {
-    return Icons.home.codePoint;
-  }
-  if (RegExp(r'\b(wifi|internet|broadband|fiber|network)\b').hasMatch(t)) {
-    return Icons.wifi.codePoint;
-  }
-  if (RegExp(r'\b(music|spotify|song|playlist)\b').hasMatch(t)) {
-    return Icons.music_note.codePoint;
-  }
-  if (RegExp(r'\b(movie|film|cinema|netflix|prime)\b').hasMatch(t)) {
-    return Icons.movie.codePoint;
-  }
-  if (RegExp(r'\b(food|lunch|dinner|meal|restaurant)\b').hasMatch(t)) {
-    return Icons.restaurant.codePoint;
-  }
-
-  return Icons.receipt_long.codePoint;
-}
-
 class TrackerPage extends StatefulWidget {
   const TrackerPage({super.key});
 
@@ -58,7 +23,7 @@ class _TrackerPageState extends State<TrackerPage> {
   DateTime dueDate = DateTime.now();
   bool isConstantBill = false;
 
-  int iconCode = Icons.receipt_long.codePoint;
+  String iconId = 'Bill';
   bool iconManuallySelected = false;
 
   List<String> get _savedUsers {
@@ -91,7 +56,7 @@ class _TrackerPageState extends State<TrackerPage> {
     titleCtrl.addListener(() {
       if (!iconManuallySelected) {
         setState(() {
-          iconCode = autoIconFromText(titleCtrl.text);
+          iconId = autoIconIdFromText(titleCtrl.text);
         });
       }
     });
@@ -495,11 +460,11 @@ class _TrackerPageState extends State<TrackerPage> {
                   spacing: 12,
                   runSpacing: 12,
                   children: trackerIcons.entries.map((e) {
-                    final selected = iconCode == e.value.codePoint;
+                    final selected = iconId == e.key;
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          iconCode = e.value.codePoint;
+                          iconId = e.key;
                           iconManuallySelected = true;
                         });
                       },
@@ -641,7 +606,7 @@ class _TrackerPageState extends State<TrackerPage> {
       dueDate: dueDate,
       users: List<String>.from(users)
         ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase())),
-      iconCode: iconCode,
+      iconId: iconId,
       archived: false,
     );
 
