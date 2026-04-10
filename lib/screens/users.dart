@@ -130,7 +130,7 @@ class _UsersPageState extends State<UsersPage> {
                       children: users.map((user) {
                         return Chip(
                           label: Text(user),
-                          onDeleted: () => _deleteUser(user),
+                          onDeleted: () => _confirmDeleteUser(user),
                           deleteIcon: const Icon(Icons.close, size: 18),
                         );
                       }).toList(),
@@ -222,6 +222,35 @@ class _UsersPageState extends State<UsersPage> {
                                   ),
                                 ),
                                 PopupMenuButton<String>(
+                                  icon: Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.06)
+                                          : const Color(0xFFF1F6FA),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.08,
+                                              )
+                                            : const Color(0xFFD9E6EF),
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.more_horiz,
+                                      color: colorScheme.onSurface.withValues(
+                                        alpha: 0.76,
+                                      ),
+                                    ),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  color: isDark
+                                      ? const Color(0xFF142033)
+                                      : Colors.white,
                                   onSelected: (value) {
                                     if (value == 'delete') {
                                       _deleteGroup(group.id, group.name);
@@ -600,6 +629,33 @@ class _UsersPageState extends State<UsersPage> {
     box.put('userGroups', updatedGroups);
     setState(() {});
     showAppAlert(context, message: '$user removed.');
+  }
+
+  Future<void> _confirmDeleteUser(String user) async {
+    final shouldDelete =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Remove user?'),
+            content: Text(
+              '$user will be removed from saved users and from any groups using them.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Remove'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (!shouldDelete) return;
+    _deleteUser(user);
   }
 
   void _deleteGroup(String groupId, String groupName) {

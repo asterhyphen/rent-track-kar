@@ -216,13 +216,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                _summaryPill(
-                  context: context,
-                  icon: Icons.palette_outlined,
-                  title: 'Theme mode',
-                  value: settings.themeMode.toUpperCase(),
-                ),
               ],
             ),
           ),
@@ -231,7 +224,7 @@ class _SettingsPageState extends State<SettingsPage> {
             context: context,
             title: 'Appearance',
             icon: Icons.palette_outlined,
-            child: SingleChildScrollView(
+            headerTrailing: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: SegmentedButton<String>(
                 segments: const [
@@ -244,14 +237,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 showSelectedIcon: false,
                 onSelectionChanged: (selected) {
                   _save(settings.copyWith(themeMode: selected.first));
-                  showAppAlert(
-                    context,
-                    message: 'Theme set to ${selected.first}.',
-                    icon: Icons.palette_outlined,
-                  );
                 },
               ),
             ),
+            child: const SizedBox.shrink(),
           ),
           const SizedBox(height: 12),
           _sectionCard(
@@ -323,12 +312,6 @@ class _SettingsPageState extends State<SettingsPage> {
                               reminderDaysBefore: value.round(),
                             ),
                           );
-                          showAppAlert(
-                            context,
-                            message:
-                                'Reminder set to ${value.round()} day${value.round() == 1 ? '' : 's'} before due date.',
-                            icon: Icons.notifications_active_outlined,
-                          );
                         }
                       : null,
                 ),
@@ -369,6 +352,7 @@ class _SettingsPageState extends State<SettingsPage> {
     required String title,
     required Widget child,
     required IconData icon,
+    Widget? headerTrailing,
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -391,83 +375,47 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           Row(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : const Color(0xFFF1F6FA),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  size: 18,
-                  color: isDark
-                      ? const Color(0xFF77FFD8)
-                      : theme.colorScheme.primary,
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : const Color(0xFFF1F6FA),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 18,
+                        color: isDark
+                            ? const Color(0xFF77FFD8)
+                            : theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
+              if (headerTrailing != null) ...[
+                const SizedBox(width: 12),
+                Flexible(child: headerTrailing),
+              ],
             ],
           ),
-          const SizedBox(height: 14),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _summaryPill({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : const Color(0xFFD9E6EF),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: isDark ? const Color(0xFF77FFD8) : theme.colorScheme.primary,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
+          if (child is! SizedBox) ...[
+            const SizedBox(height: 14),
+            child,
+          ],
         ],
       ),
     );

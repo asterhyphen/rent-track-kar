@@ -107,6 +107,33 @@ class _ArchivePageState extends State<ArchivePage> {
                               ),
                             ),
                             PopupMenuButton<String>(
+                              icon: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.06)
+                                      : const Color(0xFFF1F6FA),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.08)
+                                        : const Color(0xFFD9E6EF),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.more_horiz,
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.76,
+                                  ),
+                                ),
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              color: isDark
+                                  ? const Color(0xFF142033)
+                                  : Colors.white,
                               onSelected: (value) {
                                 if (value == 'restore') {
                                   _updateTracker(
