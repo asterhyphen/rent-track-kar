@@ -53,14 +53,6 @@ class _AppShellState extends State<AppShell> {
                   onPressed: _openArchive,
                   icon: const Icon(Icons.archive_outlined),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: FilledButton.icon(
-                    onPressed: _openCreateTracker,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add'),
-                  ),
-                ),
               ]
             : null,
         bottom: PreferredSize(
@@ -79,6 +71,13 @@ class _AppShellState extends State<AppShell> {
           SettingsPage(),
         ],
       ),
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: _openCreateTracker,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Tracker'),
+            )
+          : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
