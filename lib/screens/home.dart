@@ -5,8 +5,6 @@ import '../widgets/glass_card.dart';
 import 'app_settings.dart';
 import 'cycle.dart';
 import 'models.dart';
-import 'settings.dart';
-import 'tracker.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +18,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final raw = box.get('trackers', defaultValue: {}) as Map;
     final trackers = raw.values.map((e) => Tracker.fromMap(e)).toList()
       ..sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
@@ -30,376 +31,377 @@ class _HomePageState extends State<HomePage> {
     final paidMembers = _paidUserCount(trackers, monthKey);
     final activeTrackers = _activeCount(trackers, monthKey);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Trackers',
-          style: TextStyle(fontWeight: FontWeight.w700),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? const [Color(0xFF111A2B), Color(0xFF090F1B)]
+              : const [Color(0xFFF9FCFE), Color(0xFFEAF2F7)],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Settings',
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsPage()),
-              );
-              if (mounted) setState(() {});
-            },
-          ),
-        ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        icon: const Icon(Icons.add),
-        label: const Text('Add Tracker'),
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const TrackerPage()),
-          );
-          if (mounted) setState(() {});
-        },
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF111A2B), Color(0xFF090F1B)],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: trackers.isEmpty
-                ? const Center(child: _EmptyState())
-                : Column(
-                    children: [
-                      GlassCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: trackers.isEmpty
+              ? const Center(child: _EmptyState())
+              : Column(
+                  children: [
+                    GlassCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: isDark ? 0.18 : 0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Icon(
+                                  Icons.analytics_outlined,
+                                  color: isDark
+                                      ? const Color(0xFF77FFD8)
+                                      : colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Rent Track Kar',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Track this month at a glance',
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface.withValues(
+                                          alpha: 0.62,
+                                        ),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            children: [
+                              _statTile(
+                                context,
+                                label: 'Total',
+                                value: '${trackers.length}',
+                              ),
+                              const SizedBox(width: 12),
+                              _statTile(
+                                context,
+                                label: 'Live',
+                                value: '$activeTrackers',
+                              ),
+                              const SizedBox(width: 12),
+                              _statTile(
+                                context,
+                                label: 'Users',
+                                value: '$totalMembers',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.white.withValues(alpha: 0.75),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : const Color(0xFFD9E6EF),
+                              ),
+                            ),
+                            child: Row(
                               children: [
                                 Container(
-                                  width: 44,
-                                  height: 44,
+                                  width: 40,
+                                  height: 40,
                                   decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF00B894,
-                                    ).withValues(alpha: 0.18),
-                                    borderRadius: BorderRadius.circular(16),
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.08)
+                                        : colorScheme.primary.withValues(
+                                            alpha: 0.10,
+                                          ),
+                                    shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(
-                                    Icons.analytics_outlined,
-                                    color: Color(0xFF77FFD8),
+                                  child: Icon(
+                                    Icons.task_alt,
+                                    color: isDark
+                                        ? const Color(0xFF77FFD8)
+                                        : colorScheme.primary,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                const Expanded(
+                                Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Rent Track Kar',
+                                        'This month collection',
                                         style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      SizedBox(height: 2),
-                                      Text(
-                                        'Track this month at a glance',
-                                        style: TextStyle(
-                                          color: Colors.white60,
                                           fontSize: 13,
+                                          color: colorScheme.onSurface
+                                              .withValues(alpha: 0.62),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '$paidMembers/$totalMembers paid',
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w800,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 18),
-                            Row(
-                              children: [
-                                _statTile(
-                                  context,
-                                  label: 'Total',
-                                  value: '${trackers.length}',
-                                ),
-                                const SizedBox(width: 12),
-                                _statTile(
-                                  context,
-                                  label: 'Live',
-                                  value: '$activeTrackers',
-                                ),
-                                const SizedBox(width: 12),
-                                _statTile(
-                                  context,
-                                  label: 'Users',
-                                  value: '$totalMembers',
+                                Text(
+                                  totalMembers == 0
+                                      ? '0%'
+                                      : '${((paidMembers / totalMembers) * 100).round()}%',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? const Color(0xFF77FFD8)
+                                        : colorScheme.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 18),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 14,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.06),
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.08),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.08,
-                                      ),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.task_alt,
-                                      color: Color(0xFF77FFD8),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'This month collection',
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.white60,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '$paidMembers/$totalMembers paid',
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(
-                                    totalMembers == 0
-                                        ? '0%'
-                                        : '${((paidMembers / totalMembers) * 100).round()}%',
-                                    style: const TextStyle(
-                                      color: Color(0xFF77FFD8),
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: ListView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: trackers.length,
-                          padding: const EdgeInsets.only(bottom: 88),
-                          itemBuilder: (c, i) {
-                            final tracker = trackers[i];
-                            final monthlyKey = '${tracker.id}_$monthKey';
-                            final active = box.containsKey(monthlyKey);
-                            final monthlyData = active
-                                ? Map<String, dynamic>.from(box.get(monthlyKey))
-                                : null;
-                            final paidCount = monthlyData == null
-                                ? 0
-                                : Map<String, dynamic>.from(
-                                    monthlyData['paid'] ?? <String, dynamic>{},
-                                  ).values.where((value) => value == true).length;
-                            final totalCount = tracker.users.length;
-                            final progress = totalCount == 0
-                                ? 0.0
-                                : paidCount / totalCount;
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: trackers.length,
+                        padding: const EdgeInsets.only(bottom: 24),
+                        itemBuilder: (c, i) {
+                          final tracker = trackers[i];
+                          final monthlyKey = '${tracker.id}_$monthKey';
+                          final active = box.containsKey(monthlyKey);
+                          final monthlyData = active
+                              ? Map<String, dynamic>.from(box.get(monthlyKey))
+                              : null;
+                          final paidCount = monthlyData == null
+                              ? 0
+                              : Map<String, dynamic>.from(
+                                  monthlyData['paid'] ?? <String, dynamic>{},
+                                ).values.where((value) => value == true).length;
+                          final totalCount = tracker.users.length;
+                          final progress = totalCount == 0
+                              ? 0.0
+                              : paidCount / totalCount;
 
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Dismissible(
-                                key: ValueKey(tracker.id),
-                                direction: DismissDirection.endToStart,
-                                confirmDismiss: (_) async {
-                                  if (!settings.confirmDelete) return true;
-                                  return await showDialog<bool>(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text('Delete tracker?'),
-                                          content: const Text(
-                                            'Are you sure you want to delete this tracker? This action is irreversible.',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(ctx, false),
-                                              child: const Text('Cancel'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(ctx, true),
-                                              child: const Text('Delete'),
-                                            ),
-                                          ],
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Dismissible(
+                              key: ValueKey(tracker.id),
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (_) async {
+                                if (!settings.confirmDelete) return true;
+                                return await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Text('Delete tracker?'),
+                                        content: const Text(
+                                          'Are you sure you want to delete this tracker? This action is irreversible.',
                                         ),
-                                      ) ??
-                                      false;
-                                },
-                                onDismissed: (_) {
-                                  final all = box.get('trackers');
-                                  all.remove(tracker.id);
-                                  box.put('trackers', all);
-                                  setState(() {});
-                                },
-                                background: Container(
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.only(right: 24),
-                                  decoration: BoxDecoration(
-                                    color: Colors.redAccent,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                  ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(ctx, false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(ctx, true),
+                                            child: const Text('Delete'),
+                                          ),
+                                        ],
+                                      ),
+                                    ) ??
+                                    false;
+                              },
+                              onDismissed: (_) {
+                                final all = box.get('trackers');
+                                all.remove(tracker.id);
+                                box.put('trackers', all);
+                                setState(() {});
+                              },
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 24),
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: GlassCard(
-                                  onTap: () async {
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            CyclePage(trackerId: tracker.id),
-                                      ),
-                                    );
-                                    if (mounted) setState(() {});
-                                  },
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            width: 52,
-                                            height: 52,
-                                            decoration: BoxDecoration(
-                                              color: active
-                                                  ? const Color(
-                                                      0xFF00B894,
-                                                    ).withValues(alpha: 0.95)
-                                                  : Colors.white10,
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                            ),
-                                            child: Icon(
-                                              IconData(
-                                                tracker.iconCode,
-                                                fontFamily: 'MaterialIcons',
-                                              ),
-                                              color: active
-                                                  ? Colors.black
-                                                  : Colors.white70,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 14),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  tracker.title,
-                                                  style: const TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  active
-                                                      ? '$paidCount/$totalCount paid'
-                                                      : 'Not started this month',
-                                                  style: TextStyle(
-                                                    color: active
-                                                        ? const Color(
-                                                            0xFF77FFD8,
-                                                          )
-                                                        : Colors.white54,
-                                                    fontWeight: active
-                                                        ? FontWeight.w600
-                                                        : FontWeight.w400,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const Icon(Icons.chevron_right),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 14),
-                                      Row(
-                                        children: [
-                                          _chipLabel(
-                                            icon: Icons.people_alt_outlined,
-                                            label:
-                                                '$totalCount member${totalCount == 1 ? '' : 's'}',
-                                          ),
-                                          const SizedBox(width: 8),
-                                          _chipLabel(
-                                            icon: Icons.calendar_month_outlined,
-                                            label: active ? 'Active' : 'Pending',
-                                            highlighted: active,
-                                          ),
-                                        ],
-                                      ),
-                                      if (active) ...[
-                                        const SizedBox(height: 14),
-                                        ClipRRect(
-                                          borderRadius:
-                                              BorderRadius.circular(999),
-                                          child: LinearProgressIndicator(
-                                            minHeight: 8,
-                                            value: progress,
-                                            backgroundColor: Colors.white12,
-                                            valueColor:
-                                                const AlwaysStoppedAnimation<
-                                                  Color
-                                                >(Color(0xFF3ED9A6)),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
+                                child: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
                                 ),
                               ),
-                            );
-                          },
-                        ),
+                              child: GlassCard(
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          CyclePage(trackerId: tracker.id),
+                                    ),
+                                  );
+                                  if (mounted) setState(() {});
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 52,
+                                          height: 52,
+                                          decoration: BoxDecoration(
+                                            color: active
+                                                ? colorScheme.primary
+                                                : (isDark
+                                                      ? Colors.white10
+                                                      : const Color(
+                                                          0xFFE8EFF5,
+                                                        )),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            IconData(
+                                              tracker.iconCode,
+                                              fontFamily: 'MaterialIcons',
+                                            ),
+                                            color: active
+                                                ? colorScheme.onPrimary
+                                                : colorScheme.onSurface
+                                                    .withValues(alpha: 0.7),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                tracker.title,
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                active
+                                                    ? '$paidCount/$totalCount paid'
+                                                    : 'Not started this month',
+                                                style: TextStyle(
+                                                  color: active
+                                                      ? (isDark
+                                                            ? const Color(
+                                                                0xFF77FFD8,
+                                                              )
+                                                            : colorScheme
+                                                                  .primary)
+                                                      : colorScheme.onSurface
+                                                            .withValues(
+                                                              alpha: 0.58,
+                                                            ),
+                                                  fontWeight: active
+                                                      ? FontWeight.w600
+                                                      : FontWeight.w400,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const Icon(Icons.chevron_right),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 14),
+                                    Row(
+                                      children: [
+                                        _chipLabel(
+                                          context: context,
+                                          icon: Icons.people_alt_outlined,
+                                          label:
+                                              '$totalCount member${totalCount == 1 ? '' : 's'}',
+                                        ),
+                                        const SizedBox(width: 8),
+                                        _chipLabel(
+                                          context: context,
+                                          icon: Icons.calendar_month_outlined,
+                                          label: active
+                                              ? 'Active'
+                                              : 'Pending',
+                                          highlighted: active,
+                                        ),
+                                      ],
+                                    ),
+                                    if (active) ...[
+                                      const SizedBox(height: 14),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        child: LinearProgressIndicator(
+                                          minHeight: 8,
+                                          value: progress,
+                                          backgroundColor: isDark
+                                              ? Colors.white12
+                                              : const Color(0xFFD8E4EC),
+                                          valueColor:
+                                              const AlwaysStoppedAnimation<
+                                                Color
+                                              >(Color(0xFF3ED9A6)),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ],
-                  ),
-          ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -456,21 +458,29 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _chipLabel({
+    required BuildContext context,
     required IconData icon,
     required String label,
     bool highlighted = false,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: highlighted
             ? const Color(0xFF00B894).withValues(alpha: 0.14)
-            : Colors.white.withValues(alpha: 0.05),
+            : (isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.white.withValues(alpha: 0.72)),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: highlighted
               ? const Color(0xFF00E0B2).withValues(alpha: 0.35)
-              : Colors.white.withValues(alpha: 0.07),
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.07)
+                    : const Color(0xFFD7E3EB)),
         ),
       ),
       child: Row(
@@ -479,7 +489,11 @@ class _HomePageState extends State<HomePage> {
           Icon(
             icon,
             size: 15,
-            color: highlighted ? const Color(0xFF77FFD8) : Colors.white70,
+            color: highlighted
+                ? (isDark
+                      ? const Color(0xFF77FFD8)
+                      : theme.colorScheme.primary)
+                : theme.colorScheme.onSurface.withValues(alpha: 0.68),
           ),
           const SizedBox(width: 6),
           Text(
@@ -487,7 +501,11 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: highlighted ? const Color(0xFF77FFD8) : Colors.white70,
+              color: highlighted
+                  ? (isDark
+                        ? const Color(0xFF77FFD8)
+                        : theme.colorScheme.primary)
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.68),
             ),
           ),
         ],
@@ -501,15 +519,20 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
-        Icon(Icons.track_changes_outlined, size: 54, color: Colors.white70),
-        SizedBox(height: 10),
+      children: [
+        Icon(
+          Icons.track_changes_outlined,
+          size: 54,
+          color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+        ),
+        const SizedBox(height: 10),
         Text(
           'No trackers yet.\nTap Add Tracker to get started.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16),
+          style: theme.textTheme.titleMedium,
         ),
       ],
     );

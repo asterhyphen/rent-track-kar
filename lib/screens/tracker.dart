@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import 'app_settings.dart';
 import 'models.dart';
 
 const trackerIcons = {
@@ -53,7 +52,7 @@ class _TrackerPageState extends State<TrackerPage> {
 
   final List<String> users = [];
   DateTime startDate = DateTime.now();
-  DateTime dueDate = DateTime.now().add(const Duration(days: 5));
+  DateTime dueDate = DateTime.now();
 
   int iconCode = Icons.receipt_long.codePoint;
   bool iconManuallySelected = false;
@@ -61,9 +60,6 @@ class _TrackerPageState extends State<TrackerPage> {
   @override
   void initState() {
     super.initState();
-    final settings = AppSettings.fromMap(Hive.box('app').get('settings'));
-    dueDate = DateTime.now().add(Duration(days: settings.defaultDueDays));
-
     titleCtrl.addListener(() {
       if (!iconManuallySelected) {
         setState(() {
@@ -97,6 +93,9 @@ class _TrackerPageState extends State<TrackerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final peopleCount = users.length;
     final baseAmount = int.tryParse(amountCtrl.text) ?? 0;
     final perHead = peopleCount == 0 ? 0 : (baseAmount / peopleCount).ceil();
@@ -104,11 +103,13 @@ class _TrackerPageState extends State<TrackerPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Create Tracker')),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF10192B), Color(0xFF090F1B)],
+            colors: isDark
+                ? const [Color(0xFF10192B), Color(0xFF090F1B)]
+                : const [Color(0xFFF9FCFE), Color(0xFFEAF2F7)],
           ),
         ),
         child: SafeArea(
@@ -140,6 +141,7 @@ class _TrackerPageState extends State<TrackerPage> {
                   children: [
                     Expanded(
                       child: _dateTile(
+                        context: context,
                         icon: Icons.calendar_month,
                         label: 'Start Date',
                         value:
@@ -150,8 +152,9 @@ class _TrackerPageState extends State<TrackerPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _dateTile(
+                        context: context,
                         icon: Icons.event,
-                        label: 'Due Date',
+                        label: 'Recurring Due Date',
                         value:
                             '${dueDate.day}/${dueDate.month}/${dueDate.year}',
                         onTap: () => pickDate(false),
@@ -197,10 +200,14 @@ class _TrackerPageState extends State<TrackerPage> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.07),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.07)
+                        : Colors.white.withValues(alpha: 0.82),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.10),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.10)
+                          : const Color(0xFFD9E6EF),
                     ),
                   ),
                   child: Row(
@@ -217,6 +224,13 @@ class _TrackerPageState extends State<TrackerPage> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'The selected due date repeats automatically every month.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.66),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -245,11 +259,15 @@ class _TrackerPageState extends State<TrackerPage> {
                           borderRadius: BorderRadius.circular(15),
                           color: selected
                               ? const Color(0xFF00B894)
-                              : Colors.white.withValues(alpha: 0.08),
+                              : (isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : const Color(0xFFF0F5F9)),
                         ),
                         child: Icon(
                           e.value,
-                          color: selected ? Colors.black : Colors.white,
+                          color: selected
+                              ? colorScheme.onPrimary
+                              : colorScheme.onSurface,
                         ),
                       ),
                     );
@@ -289,20 +307,30 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   Widget _dateTile({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required String value,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.07)
+              : Colors.white.withValues(alpha: 0.82),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.10)
+                : const Color(0xFFD9E6EF),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

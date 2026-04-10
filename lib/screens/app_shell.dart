@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-
 import 'home.dart';
 import 'settings.dart';
 import 'tracker.dart';
@@ -109,6 +107,5 @@ class _AppShellState extends State<AppShell> {
 
     if (!mounted) return;
     setState(() {});
-    Hive.box('app').put('shell_refresh', DateTime.now().millisecondsSinceEpoch);
   }
 }

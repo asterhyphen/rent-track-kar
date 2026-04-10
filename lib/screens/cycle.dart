@@ -54,13 +54,10 @@ class _CyclePageState extends State<CyclePage> {
     if (saved != null) {
       paid = Map<String, bool>.from(saved['paid']);
       total = saved['total'];
-      due = saved['due'] != null
-          ? DateTime.parse(saved['due'])
-          : tracker.dueDate;
     } else {
       total = tracker.amount ?? 0;
-      due = tracker.dueDate;
     }
+    due = recurringDueDateForMonth(tracker.dueDate, DateTime.now());
 
     totalController = TextEditingController(text: total.toString());
   }
@@ -69,7 +66,6 @@ class _CyclePageState extends State<CyclePage> {
     box.put('${tracker.id}_$monthKey', {
       'paid': paid,
       'total': total,
-      'due': due?.toIso8601String(),
     });
   }
 
@@ -85,7 +81,7 @@ class _CyclePageState extends State<CyclePage> {
       text: tracker.amount?.toString() ?? '',
     );
     final users = List<String>.from(tracker.users);
-    DateTime newDue = due ?? tracker.dueDate;
+    DateTime newDue = tracker.dueDate;
     int icon = tracker.iconCode;
 
     showModalBottomSheet(
@@ -171,14 +167,18 @@ class _CyclePageState extends State<CyclePage> {
                   final selected = icon == e.value.codePoint;
                   return GestureDetector(
                     onTap: () => setModal(() => icon = e.value.codePoint),
-                    child: CircleAvatar(
+                      child: CircleAvatar(
                       radius: 22,
                       backgroundColor: selected
                           ? Theme.of(context).colorScheme.primary
-                          : Colors.white12,
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                       child: Icon(
                         e.value,
-                        color: selected ? Colors.black : Colors.white,
+                        color: selected
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   );
@@ -199,7 +199,7 @@ class _CyclePageState extends State<CyclePage> {
                         ),
                       iconCode: icon,
                     );
-                    due = newDue;
+                    due = recurringDueDateForMonth(newDue, DateTime.now());
                     total = tracker.amount ?? total;
                   });
 
@@ -251,6 +251,9 @@ ${pendingUsers.join('\n')}
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final totalUsers = tracker.users.length;
     final paidCount = tracker.users.where((u) => paid[u] == true).length;
     final pendingCount = tracker.users.length - paidCount;
@@ -282,11 +285,13 @@ ${pendingUsers.join('\n')}
         label: const Text('Share'),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF111A2B), Color(0xFF090F1B)],
+            colors: isDark
+                ? const [Color(0xFF111A2B), Color(0xFF090F1B)]
+                : const [Color(0xFFF9FCFE), Color(0xFFEAF2F7)],
           ),
         ),
         child: Padding(
@@ -300,9 +305,11 @@ ${pendingUsers.join('\n')}
                   children: [
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Total',
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withValues(alpha: 0.68),
+                          ),
                         ),
                         const Spacer(),
                         Text(
@@ -317,9 +324,11 @@ ${pendingUsers.join('\n')}
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Per Head',
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withValues(alpha: 0.68),
+                          ),
                         ),
                         const Spacer(),
                         Text(
@@ -335,9 +344,11 @@ ${pendingUsers.join('\n')}
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Progress',
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withValues(alpha: 0.68),
+                          ),
                         ),
                         const Spacer(),
                         Text(
@@ -355,7 +366,9 @@ ${pendingUsers.join('\n')}
                       child: LinearProgressIndicator(
                         minHeight: 10,
                         value: paidProgress,
-                        backgroundColor: Colors.white12,
+                        backgroundColor: isDark
+                            ? Colors.white12
+                            : const Color(0xFFD8E4EC),
                         valueColor: const AlwaysStoppedAnimation<Color>(
                           Color(0xFF3ED9A6),
                         ),
@@ -459,7 +472,7 @@ ${pendingUsers.join('\n')}
                               : Icons.radio_button_unchecked,
                           color: isPaid
                               ? const Color(0xFF3ED9A6)
-                              : Colors.white54,
+                              : colorScheme.onSurface.withValues(alpha: 0.56),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -511,10 +524,15 @@ ${pendingUsers.join('\n')}
     required String subValue,
     required Color tint,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.white.withValues(alpha: 0.82),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: tint.withValues(alpha: 0.55)),
       ),
@@ -523,7 +541,10 @@ ${pendingUsers.join('\n')}
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 12, color: Colors.white70),
+            style: TextStyle(
+              fontSize: 12,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
+            ),
           ),
           const SizedBox(height: 6),
           Text(

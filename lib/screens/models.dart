@@ -10,6 +10,12 @@ String formatName(String input) {
       .join(' ');
 }
 
+DateTime recurringDueDateForMonth(DateTime template, DateTime month) {
+  final lastDayOfMonth = DateTime(month.year, month.month + 1, 0).day;
+  final targetDay = template.day.clamp(1, lastDayOfMonth);
+  return DateTime(month.year, month.month, targetDay);
+}
+
 class Tracker {
   final String id;
   final String title;
