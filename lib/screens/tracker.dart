@@ -60,6 +60,19 @@ class _TrackerPageState extends State<TrackerPage> {
   int iconCode = Icons.receipt_long.codePoint;
   bool iconManuallySelected = false;
 
+  List<String> get _savedUsers {
+    final raw = Hive.box('app').get('savedUsers', defaultValue: <String>[]) as List;
+    return normalizeNames(raw);
+  }
+
+  List<UserGroup> get _savedGroups {
+    final raw =
+        Hive.box('app').get('userGroups', defaultValue: <String, dynamic>{})
+            as Map;
+    return raw.values.map((value) => UserGroup.fromMap(value)).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -99,6 +112,8 @@ class _TrackerPageState extends State<TrackerPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final savedUsers = _savedUsers;
+    final savedGroups = _savedGroups;
     final peopleCount = users.length;
     final baseAmount = isConstantBill ? int.tryParse(amountCtrl.text) ?? 0 : 0;
     final perHead = peopleCount == 0 ? 0 : (baseAmount / peopleCount).ceil();
@@ -169,6 +184,135 @@ class _TrackerPageState extends State<TrackerPage> {
                   ),
                 ],
                 const SizedBox(height: 14),
+                if (savedGroups.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Text(
+                        'Quick Add Groups',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 96,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: savedGroups.length,
+                      separatorBuilder: (_, _) => const SizedBox(width: 10),
+                      itemBuilder: (context, index) {
+                        final group = savedGroups[index];
+                        final allAdded = group.members.every(users.contains);
+                        return InkWell(
+                          onTap: () => _addUsers(group.members),
+                          borderRadius: BorderRadius.circular(18),
+                          child: Container(
+                            width: 180,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: allAdded
+                                  ? colorScheme.primary.withValues(
+                                      alpha: isDark ? 0.16 : 0.12,
+                                    )
+                                  : (isDark
+                                        ? Colors.white.withValues(alpha: 0.06)
+                                        : Colors.white.withValues(alpha: 0.82)),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: allAdded
+                                    ? colorScheme.primary.withValues(alpha: 0.4)
+                                    : (isDark
+                                          ? Colors.white.withValues(alpha: 0.08)
+                                          : const Color(0xFFD9E6EF)),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.groups_rounded,
+                                      color: allAdded
+                                          ? colorScheme.primary
+                                          : colorScheme.onSurface,
+                                    ),
+                                    const Spacer(),
+                                    Icon(
+                                      allAdded
+                                          ? Icons.check_circle
+                                          : Icons.add_circle_outline,
+                                      size: 18,
+                                      color: allAdded
+                                          ? colorScheme.primary
+                                          : colorScheme.onSurface.withValues(
+                                              alpha: 0.64,
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  group.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${group.members.length} member${group.members.length == 1 ? '' : 's'}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.68,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+                if (savedUsers.isNotEmpty) ...[
+                  Row(
+                    children: [
+                      Text(
+                        'Pick Saved Users',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: savedUsers.map((savedUser) {
+                      final added = users.contains(savedUser);
+                      return FilterChip(
+                        label: Text(savedUser),
+                        selected: added,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _addUsers([savedUser]);
+                          } else {
+                            setState(() => users.remove(savedUser));
+                          }
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 14),
+                ],
                 Row(
                   children: [
                     Expanded(
@@ -326,17 +470,27 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   void _addUser() {
-    if (userCtrl.text.trim().isEmpty) return;
     final formatted = formatName(userCtrl.text);
-    if (formatted.isEmpty || users.contains(formatted)) {
-      userCtrl.clear();
+    if (formatted.isEmpty) return;
+    _addUsers([formatted], clearInput: true);
+  }
+
+  void _addUsers(List<String> newUsers, {bool clearInput = false}) {
+    final merged = normalizeNames([...users, ...newUsers]);
+    if (merged.length == users.length) {
+      if (clearInput) {
+        userCtrl.clear();
+      }
       return;
     }
 
     setState(() {
-      users.add(formatted);
-      users.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
-      userCtrl.clear();
+      users
+        ..clear()
+        ..addAll(merged);
+      if (clearInput) {
+        userCtrl.clear();
+      }
     });
   }
 

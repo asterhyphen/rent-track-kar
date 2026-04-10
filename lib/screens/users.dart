@@ -1,12 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
-class UsersPage extends StatelessWidget {
+import '../widgets/app_alert.dart';
+import '../widgets/glass_card.dart';
+import 'models.dart';
+
+class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
+
+  @override
+  State<UsersPage> createState() => _UsersPageState();
+}
+
+class _UsersPageState extends State<UsersPage> {
+  final box = Hive.box('app');
+
+  List<String> get _savedUsers {
+    final raw = box.get('savedUsers', defaultValue: <String>[]) as List;
+    return normalizeNames(raw);
+  }
+
+  List<UserGroup> get _groups {
+    final raw = box.get('userGroups', defaultValue: <String, dynamic>{}) as Map;
+    return raw.values.map((value) => UserGroup.fromMap(value)).toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final users = _savedUsers;
+    final groups = _groups;
 
     return Container(
       decoration: BoxDecoration(
@@ -20,82 +46,569 @@ class UsersPage extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 420),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: isDark
-                      ? [
-                          Colors.white.withValues(alpha: 0.10),
-                          Colors.white.withValues(alpha: 0.03),
-                        ]
-                      : [
-                          Colors.white,
-                          const Color(0xFFF2F7FB),
-                        ],
-                ),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.10)
-                      : const Color(0xFFD9E6EF),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.black.withValues(alpha: 0.28)
-                        : const Color(0xFF8FA8BA).withValues(alpha: 0.18),
-                    blurRadius: 28,
-                    offset: const Offset(0, 14),
-                  ),
-                ],
-              ),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            GlassCard(
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 68,
-                    height: 68,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(
-                        alpha: isDark ? 0.18 : 0.12,
+                  Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(
+                            alpha: isDark ? 0.18 : 0.12,
+                          ),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Icon(
+                          Icons.people_alt_rounded,
+                          color: colorScheme.primary,
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    child: Icon(
-                      Icons.people_alt_rounded,
-                      size: 34,
-                      color: theme.colorScheme.primary,
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Users & Groups',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Save people once, then reuse them while creating trackers.',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.68,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 18),
-                  Text(
-                    'Users tab is ready',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'We can wire user-level views, summaries, and actions here next.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.68),
-                    ),
-                    textAlign: TextAlign.center,
+                  Row(
+                    children: [
+                      _summaryTile(
+                        context,
+                        label: 'Users',
+                        value: '${users.length}',
+                      ),
+                      const SizedBox(width: 12),
+                      _summaryTile(
+                        context,
+                        label: 'Groups',
+                        value: '${groups.length}',
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+            _sectionCard(
+              context,
+              title: 'Saved Users',
+              actionLabel: 'Add User',
+              onAction: _showAddUserSheet,
+              child: users.isEmpty
+                  ? _emptyBody(
+                      context,
+                      'No saved users yet. Add people here so tracker creation is quicker later.',
+                    )
+                  : Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: users.map((user) {
+                        return Chip(
+                          label: Text(user),
+                          onDeleted: () => _deleteUser(user),
+                          deleteIcon: const Icon(Icons.close, size: 18),
+                        );
+                      }).toList(),
+                    ),
+            ),
+            const SizedBox(height: 12),
+            _sectionCard(
+              context,
+              title: 'Groups',
+              actionLabel: users.isEmpty ? null : 'Create Group',
+              onAction: users.isEmpty ? null : _showCreateGroupSheet,
+              child: groups.isEmpty
+                  ? _emptyBody(
+                      context,
+                      users.isEmpty
+                          ? 'Add users first, then combine them into reusable groups.'
+                          : 'No groups yet. Create groups from existing users for one-tap tracker setup.',
+                    )
+                  : Column(
+                      children: groups.map((group) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.white.withValues(alpha: 0.76),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : const Color(0xFFD9E6EF),
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.primary.withValues(
+                                      alpha: isDark ? 0.18 : 0.12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Icon(
+                                    Icons.group_work_outlined,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        group.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${group.members.length} member${group.members.length == 1 ? '' : 's'}',
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: colorScheme.onSurface
+                                                  .withValues(alpha: 0.68),
+                                            ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: group.members
+                                            .map(
+                                              (member) => _miniTag(
+                                                context,
+                                                member,
+                                              ),
+                                            )
+                                            .toList(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuButton<String>(
+                                  onSelected: (value) {
+                                    if (value == 'delete') {
+                                      _deleteGroup(group.id, group.name);
+                                    }
+                                  },
+                                  itemBuilder: (context) => const [
+                                    PopupMenuItem<String>(
+                                      value: 'delete',
+                                      child: Text('Delete Group'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _summaryTile(
+    BuildContext context, {
+    required String label,
+    required String value,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.white.withValues(alpha: 0.76),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(
+                  alpha: 0.68,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionCard(
+    BuildContext context, {
+    required String title,
+    String? actionLabel,
+    VoidCallback? onAction,
+    required Widget child,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.065)
+            : Colors.white.withValues(alpha: 0.84),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.10)
+              : const Color(0xFFD9E6EF),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (actionLabel != null && onAction != null)
+                FilledButton.tonalIcon(
+                  onPressed: onAction,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(actionLabel),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyBody(BuildContext context, String text) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.68),
+      ),
+    );
+  }
+
+  Widget _miniTag(BuildContext context, String label) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : const Color(0xFFF0F5F9),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.bodySmall?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showAddUserSheet() async {
+    final controller = TextEditingController();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Add User',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'User name',
+                prefixIcon: Icon(Icons.person_add_alt_1),
+              ),
+              onSubmitted: (_) => _saveUserFromSheet(controller),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => _saveUserFromSheet(controller),
+                child: const Text('Save User'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _saveUserFromSheet(TextEditingController controller) {
+    final name = formatName(controller.text);
+    final users = _savedUsers;
+
+    if (name.isEmpty) {
+      showAppAlert(
+        context,
+        message: 'Enter a user name first.',
+        icon: Icons.info_outline,
+        tone: AppAlertTone.info,
+      );
+      return;
+    }
+
+    if (users.contains(name)) {
+      showAppAlert(
+        context,
+        message: '$name already exists.',
+        icon: Icons.info_outline,
+        tone: AppAlertTone.info,
+      );
+      return;
+    }
+
+    box.put('savedUsers', normalizeNames([...users, name]));
+    Navigator.pop(context);
+    setState(() {});
+    showAppAlert(context, message: '$name added to saved users.');
+  }
+
+  Future<void> _showCreateGroupSheet() async {
+    final nameCtrl = TextEditingController();
+    final savedUsers = _savedUsers;
+    final selectedUsers = <String>{};
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Create Group',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Group name',
+                  prefixIcon: Icon(Icons.group_add_outlined),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Choose users',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: savedUsers.map((user) {
+                  final selected = selectedUsers.contains(user);
+                  return FilterChip(
+                    label: Text(user),
+                    selected: selected,
+                    onSelected: (value) {
+                      setModalState(() {
+                        if (value) {
+                          selectedUsers.add(user);
+                        } else {
+                          selectedUsers.remove(user);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => _saveGroupFromSheet(
+                    groupName: nameCtrl.text,
+                    members: selectedUsers.toList(),
+                  ),
+                  child: const Text('Create Group'),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  void _saveGroupFromSheet({
+    required String groupName,
+    required List<String> members,
+  }) {
+    final name = formatName(groupName);
+    final normalizedMembers = normalizeNames(members);
+    final groupsMap = Map<String, dynamic>.from(
+      box.get('userGroups', defaultValue: <String, dynamic>{}) as Map,
+    );
+
+    if (name.isEmpty) {
+      showAppAlert(
+        context,
+        message: 'Enter a group name first.',
+        icon: Icons.info_outline,
+        tone: AppAlertTone.info,
+      );
+      return;
+    }
+
+    if (normalizedMembers.isEmpty) {
+      showAppAlert(
+        context,
+        message: 'Select at least one user for the group.',
+        icon: Icons.info_outline,
+        tone: AppAlertTone.info,
+      );
+      return;
+    }
+
+    final alreadyExists = groupsMap.values
+        .map((value) => UserGroup.fromMap(value))
+        .any((group) => group.name.toLowerCase() == name.toLowerCase());
+
+    if (alreadyExists) {
+      showAppAlert(
+        context,
+        message: '$name already exists as a group.',
+        icon: Icons.info_outline,
+        tone: AppAlertTone.info,
+      );
+      return;
+    }
+
+    final group = UserGroup(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      members: normalizedMembers,
+    );
+
+    groupsMap[group.id] = group.toMap();
+    box.put('userGroups', groupsMap);
+    Navigator.pop(context);
+    setState(() {});
+    showAppAlert(context, message: '$name group created.');
+  }
+
+  void _deleteUser(String user) {
+    final users = _savedUsers.where((value) => value != user).toList();
+    box.put('savedUsers', users);
+
+    final groupsMap = Map<String, dynamic>.from(
+      box.get('userGroups', defaultValue: <String, dynamic>{}) as Map,
+    );
+
+    final updatedGroups = <String, dynamic>{};
+    for (final entry in groupsMap.entries) {
+      final group = UserGroup.fromMap(entry.value);
+      final remainingMembers = group.members.where((m) => m != user).toList();
+      if (remainingMembers.isEmpty) continue;
+      updatedGroups[entry.key] = group.copyWith(
+        members: normalizeNames(remainingMembers),
+      ).toMap();
+    }
+
+    box.put('userGroups', updatedGroups);
+    setState(() {});
+    showAppAlert(context, message: '$user removed.');
+  }
+
+  void _deleteGroup(String groupId, String groupName) {
+    final groupsMap = Map<String, dynamic>.from(
+      box.get('userGroups', defaultValue: <String, dynamic>{}) as Map,
+    );
+    groupsMap.remove(groupId);
+    box.put('userGroups', groupsMap);
+    setState(() {});
+    showAppAlert(context, message: '$groupName deleted.');
   }
 }
