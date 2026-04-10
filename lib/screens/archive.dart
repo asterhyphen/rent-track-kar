@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../services/notification_service.dart';
 import '../widgets/app_alert.dart';
 import '../widgets/glass_card.dart';
 import 'models.dart';
@@ -141,6 +142,7 @@ class _ArchivePageState extends State<ArchivePage> {
     final all = box.get('trackers', defaultValue: {}) as Map;
     all[tracker.id] = tracker.toMap();
     box.put('trackers', all);
+    NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(context, message: '${tracker.title} restored.');
   }
@@ -150,6 +152,7 @@ class _ArchivePageState extends State<ArchivePage> {
     final tracker = all[trackerId] != null ? Tracker.fromMap(all[trackerId]) : null;
     all.remove(trackerId);
     box.put('trackers', all);
+    NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(
       context,

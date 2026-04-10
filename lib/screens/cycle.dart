@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:share_plus/share_plus.dart';
+import '../services/notification_service.dart';
 import '../widgets/app_alert.dart';
 import '../widgets/glass_card.dart';
 import 'app_settings.dart';
@@ -207,6 +208,7 @@ class _CyclePageState extends State<CyclePage> {
 
                   persist();
                   persistTracker();
+                  NotificationService.instance.syncForAllTrackers(box);
                   showAppAlert(context, message: 'Tracker updated.');
                   Navigator.pop(context);
                 },

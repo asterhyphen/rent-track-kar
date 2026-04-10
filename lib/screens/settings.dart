@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../services/notification_service.dart';
+import '../widgets/app_alert.dart';
 import 'app_settings.dart';
 import 'message_template_editor.dart';
-import '../widgets/app_alert.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -26,6 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void _save(AppSettings value) {
     setState(() => settings = value);
     box.put('settings', value.toMap());
+    NotificationService.instance.syncForAllTrackers(box);
   }
 
   Future<void> _editMessageTemplate() async {
@@ -86,6 +88,34 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (!mounted) return;
     showAppAlert(context, message: 'Monthly records cleared.');
+  }
+
+  Future<void> _setNotificationsEnabled(bool enabled) async {
+    if (!enabled) {
+      _save(settings.copyWith(notificationsEnabled: false));
+      showAppAlert(context, message: 'Due reminders turned off.');
+      return;
+    }
+
+    final granted = await NotificationService.instance.requestPermission();
+    if (!mounted) return;
+
+    if (!granted) {
+      showAppAlert(
+        context,
+        message: 'Notification permission was not granted.',
+        icon: Icons.notifications_off_outlined,
+      );
+      return;
+    }
+
+    _save(settings.copyWith(notificationsEnabled: true));
+    showAppAlert(
+      context,
+      message:
+          'Due reminders turned on ${settings.reminderDaysBefore} day${settings.reminderDaysBefore == 1 ? '' : 's'} before due date.',
+      icon: Icons.notifications_active_outlined,
+    );
   }
 
   @override
@@ -251,6 +281,54 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _editMessageTemplate,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          _sectionCard(
+            context: context,
+            title: 'Notifications',
+            icon: Icons.notifications_active_outlined,
+            child: Column(
+              children: [
+                SwitchListTile.adaptive(
+                  value: settings.notificationsEnabled,
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Enable due reminders'),
+                  subtitle: const Text(
+                    'Permission is requested only when you enable this',
+                  ),
+                  onChanged: _setNotificationsEnabled,
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    'Send reminder ${settings.reminderDaysBefore} day${settings.reminderDaysBefore == 1 ? '' : 's'} before due date',
+                  ),
+                  subtitle: const Text('Pick how early you want the alert'),
+                ),
+                Slider(
+                  min: 1,
+                  max: 7,
+                  divisions: 6,
+                  value: settings.reminderDaysBefore.toDouble(),
+                  onChanged: settings.notificationsEnabled
+                      ? (value) {
+                          _save(
+                            settings.copyWith(
+                              reminderDaysBefore: value.round(),
+                            ),
+                          );
+                          showAppAlert(
+                            context,
+                            message:
+                                'Reminder set to ${value.round()} day${value.round() == 1 ? '' : 's'} before due date.',
+                            icon: Icons.notifications_active_outlined,
+                          );
+                        }
+                      : null,
                 ),
               ],
             ),

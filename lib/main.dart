@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'services/notification_service.dart';
 import 'screens/app_shell.dart';
 import 'screens/app_settings.dart';
 
@@ -7,6 +8,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('app');
+  await NotificationService.instance.initialize();
+  await NotificationService.instance.syncForAllTrackers(Hive.box('app'));
   runApp(const MyApp());
 }
 

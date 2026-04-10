@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../services/notification_service.dart';
 import '../widgets/app_alert.dart';
 import 'models.dart';
 
@@ -54,6 +55,7 @@ class _TrackerPageState extends State<TrackerPage> {
   final List<String> users = [];
   DateTime startDate = DateTime.now();
   DateTime dueDate = DateTime.now();
+  bool isConstantBill = false;
 
   int iconCode = Icons.receipt_long.codePoint;
   bool iconManuallySelected = false;
@@ -98,7 +100,7 @@ class _TrackerPageState extends State<TrackerPage> {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final peopleCount = users.length;
-    final baseAmount = int.tryParse(amountCtrl.text) ?? 0;
+    final baseAmount = isConstantBill ? int.tryParse(amountCtrl.text) ?? 0 : 0;
     final perHead = peopleCount == 0 ? 0 : (baseAmount / peopleCount).ceil();
 
     return Scaffold(
@@ -128,15 +130,44 @@ class _TrackerPageState extends State<TrackerPage> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: amountCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Amount (optional)',
-                    prefixIcon: Icon(Icons.currency_rupee),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SegmentedButton<bool>(
+                    segments: const [
+                      ButtonSegment<bool>(
+                        value: false,
+                        label: Text('Variable Bill'),
+                      ),
+                      ButtonSegment<bool>(
+                        value: true,
+                        label: Text('Constant Bill'),
+                      ),
+                    ],
+                    selected: {isConstantBill},
+                    multiSelectionEnabled: false,
+                    showSelectedIcon: false,
+                    onSelectionChanged: (selected) {
+                      setState(() {
+                        isConstantBill = selected.first;
+                        if (!isConstantBill) {
+                          amountCtrl.clear();
+                        }
+                      });
+                    },
                   ),
-                  onChanged: (_) => setState(() {}),
                 ),
+                if (isConstantBill) ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Amount',
+                      prefixIcon: Icon(Icons.currency_rupee),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 Row(
                   children: [
@@ -216,7 +247,9 @@ class _TrackerPageState extends State<TrackerPage> {
                     children: [
                       const Text('Per Head'),
                       Text(
-                        peopleCount == 0 || baseAmount == 0
+                        !isConstantBill
+                            ? 'Set monthly total later'
+                            : peopleCount == 0 || baseAmount == 0
                             ? 'Add amount & users'
                             : '₹$perHead each',
                         style: const TextStyle(
@@ -359,6 +392,15 @@ class _TrackerPageState extends State<TrackerPage> {
       return;
     }
 
+    if (isConstantBill && (int.tryParse(amountCtrl.text) ?? 0) <= 0) {
+      showAppAlert(
+        context,
+        message: 'Enter an amount for a constant bill.',
+        icon: Icons.info_outline,
+      );
+      return;
+    }
+
     final box = Hive.box('app');
     // use timestamp to generate a more collision-resistant id
     final id = '${titleCtrl.text}_${DateTime.now().millisecondsSinceEpoch}';
@@ -366,7 +408,7 @@ class _TrackerPageState extends State<TrackerPage> {
     final tracker = Tracker(
       id: id,
       title: titleCtrl.text,
-      amount: int.tryParse(amountCtrl.text),
+      amount: isConstantBill ? int.tryParse(amountCtrl.text) : null,
       startDate: startDate,
       dueDate: dueDate,
       users: List<String>.from(users)
@@ -378,6 +420,7 @@ class _TrackerPageState extends State<TrackerPage> {
     final all = box.get('trackers', defaultValue: {});
     all[id] = tracker.toMap();
     box.put('trackers', all);
+    NotificationService.instance.syncForAllTrackers(box);
     showAppAlert(context, message: 'Tracker created.');
     Navigator.pop(context);
   }

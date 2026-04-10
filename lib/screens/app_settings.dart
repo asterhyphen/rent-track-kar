@@ -18,17 +18,23 @@ _Pending ({pendingCount}; ₹{pendingAmount})_
   final String themeMode;
   final bool confirmDelete;
   final String messageTemplate;
+  final bool notificationsEnabled;
+  final int reminderDaysBefore;
 
   const AppSettings({
     required this.themeMode,
     required this.confirmDelete,
     required this.messageTemplate,
+    required this.notificationsEnabled,
+    required this.reminderDaysBefore,
   });
 
   static const AppSettings defaults = AppSettings(
     themeMode: 'dark',
     confirmDelete: true,
     messageTemplate: defaultMessageTemplate,
+    notificationsEnabled: false,
+    reminderDaysBefore: 2,
   );
 
   factory AppSettings.fromMap(Map? map) {
@@ -39,6 +45,10 @@ _Pending ({pendingCount}; ₹{pendingAmount})_
           ? map['confirmDelete'] as bool
           : defaults.confirmDelete,
       messageTemplate: _normalizeMessageTemplate(map['messageTemplate']),
+      notificationsEnabled: map['notificationsEnabled'] is bool
+          ? map['notificationsEnabled'] as bool
+          : defaults.notificationsEnabled,
+      reminderDaysBefore: _normalizeReminderDays(map['reminderDaysBefore']),
     );
   }
 
@@ -46,12 +56,18 @@ _Pending ({pendingCount}; ₹{pendingAmount})_
     String? themeMode,
     bool? confirmDelete,
     String? messageTemplate,
+    bool? notificationsEnabled,
+    int? reminderDaysBefore,
   }) {
     return AppSettings(
       themeMode: _normalizeThemeMode(themeMode ?? this.themeMode),
       confirmDelete: confirmDelete ?? this.confirmDelete,
       messageTemplate: _normalizeMessageTemplate(
         messageTemplate ?? this.messageTemplate,
+      ),
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      reminderDaysBefore: _normalizeReminderDays(
+        reminderDaysBefore ?? this.reminderDaysBefore,
       ),
     );
   }
@@ -61,6 +77,8 @@ _Pending ({pendingCount}; ₹{pendingAmount})_
       'themeMode': themeMode,
       'confirmDelete': confirmDelete,
       'messageTemplate': messageTemplate,
+      'notificationsEnabled': notificationsEnabled,
+      'reminderDaysBefore': reminderDaysBefore,
     };
   }
 
@@ -86,5 +104,11 @@ _Pending ({pendingCount}; ₹{pendingAmount})_
     final template = (value ?? '').toString().trim();
     if (template.isEmpty) return defaultMessageTemplate;
     return template;
+  }
+
+  static int _normalizeReminderDays(Object? value) {
+    final days = value is int ? value : int.tryParse('${value ?? ''}');
+    if (days == null) return defaults.reminderDaysBefore;
+    return days.clamp(1, 7);
   }
 }

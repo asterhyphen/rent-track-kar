@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
+import '../services/notification_service.dart';
 import '../widgets/app_alert.dart';
 import '../widgets/glass_card.dart';
 import 'app_settings.dart';
@@ -260,6 +261,9 @@ class _HomePageState extends State<HomePage> {
                                 final all = box.get('trackers');
                                 all.remove(tracker.id);
                                 box.put('trackers', all);
+                                NotificationService.instance.syncForAllTrackers(
+                                  box,
+                                );
                                 setState(() {});
                               },
                               background: Container(
@@ -428,6 +432,7 @@ class _HomePageState extends State<HomePage> {
     final all = box.get('trackers', defaultValue: {}) as Map;
     all[tracker.id] = tracker.toMap();
     box.put('trackers', all);
+    NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(context, message: '${tracker.title} moved to archive.');
   }
@@ -437,6 +442,7 @@ class _HomePageState extends State<HomePage> {
     final tracker = all[trackerId] != null ? Tracker.fromMap(all[trackerId]) : null;
     all.remove(trackerId);
     box.put('trackers', all);
+    NotificationService.instance.syncForAllTrackers(box);
     setState(() {});
     showAppAlert(
       context,
