@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 
+enum AppAlertTone { success, error, info }
+
 void showAppAlert(
   BuildContext context, {
   required String message,
   IconData icon = Icons.check_circle_outline,
+  AppAlertTone tone = AppAlertTone.success,
 }) {
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
+  final accentColor = switch (tone) {
+    AppAlertTone.success => theme.colorScheme.primary,
+    AppAlertTone.error => const Color(0xFFFF6B6B),
+    AppAlertTone.info => const Color(0xFFFFB85C),
+  };
 
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
@@ -19,14 +27,16 @@ void showAppAlert(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: BorderSide(
-            color: isDark
+            color: tone == AppAlertTone.error
+                ? accentColor.withValues(alpha: isDark ? 0.45 : 0.35)
+                : isDark
                 ? Colors.white.withValues(alpha: 0.08)
                 : const Color(0xFFD7E3EB),
           ),
         ),
         content: Row(
           children: [
-            Icon(icon, color: theme.colorScheme.primary),
+            Icon(icon, color: accentColor),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

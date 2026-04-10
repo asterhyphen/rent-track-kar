@@ -103,8 +103,10 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!granted) {
       showAppAlert(
         context,
-        message: 'Notification permission was not granted.',
+        message:
+            'Notification permission was denied. Enable it from system settings to use due reminders.',
         icon: Icons.notifications_off_outlined,
+        tone: AppAlertTone.error,
       );
       return;
     }
