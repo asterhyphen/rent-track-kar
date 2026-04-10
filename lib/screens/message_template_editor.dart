@@ -17,6 +17,7 @@ class MessageTemplateEditorPage extends StatefulWidget {
 
 class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
   late final TextEditingController _controller;
+  late final String _initialTemplate;
 
   static const _placeholders = [
     ('{title}', 'Tracker title'),
@@ -42,6 +43,7 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
   @override
   void initState() {
     super.initState();
+    _initialTemplate = widget.initialTemplate;
     _controller = TextEditingController(text: widget.initialTemplate);
   }
 
@@ -56,95 +58,143 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Message Template'),
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || !_hasUnsavedChanges) return;
+        final shouldDiscard = await _confirmDiscardChanges();
+        if (shouldDiscard == true && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              if (!_hasUnsavedChanges) {
+                Navigator.pop(context);
+                return;
+              }
+
+              final shouldDiscard = await _confirmDiscardChanges();
+              if (shouldDiscard == true && context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+          ),
+          title: const Text('Edit Message Template'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _controller.text = AppSettings.defaultMessageTemplate;
+                setState(() {});
+              },
+              child: const Text('Reset'),
+            ),
+          ],
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: isDark
+                  ? const [Color(0xFF10192B), Color(0xFF090F1B)]
+                  : const [Color(0xFFF9FCFE), Color(0xFFEAF2F7)],
+            ),
+          ),
+          child: SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _InfoCard(
+                  title: 'Template',
+                  child: TextField(
+                    controller: _controller,
+                    minLines: 12,
+                    maxLines: 18,
+                    decoration: const InputDecoration(
+                      alignLabelWithHint: true,
+                      labelText: 'Share message template',
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _InfoCard(
+                  title: 'Placeholders',
+                  child: Column(
+                    children: _placeholders
+                        .map(
+                          (item) => _HelpRow(
+                            left: item.$1,
+                            right: item.$2,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _InfoCard(
+                  title: 'Formatting Rules',
+                  child: Column(
+                    children: _formattingRules
+                        .map(
+                          (item) => _HelpRow(
+                            left: item.$1,
+                            right: item.$2,
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _InfoCard(
+                  title: 'Tips',
+                  child: Text(
+                    'You can mix placeholders with formatting. Example: `*_{title}_*` makes the tracker title bold and italic. Keep placeholders exactly as shown, including the curly braces.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 96),
+              ],
+            ),
+          ),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.pop(context, _controller.text);
+          },
+          icon: const Icon(Icons.save_outlined),
+          label: const Text('Save Template'),
+        ),
+      ),
+    );
+  }
+
+  bool get _hasUnsavedChanges => _controller.text != _initialTemplate;
+
+  Future<bool?> _confirmDiscardChanges() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Unsaved changes'),
+        content: const Text(
+          'Are you sure you want to go back? Your edits will be lost.',
+        ),
         actions: [
           TextButton(
-            onPressed: () {
-              _controller.text = AppSettings.defaultMessageTemplate;
-              setState(() {});
-            },
-            child: const Text('Reset'),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep editing'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Discard changes'),
           ),
         ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? const [Color(0xFF10192B), Color(0xFF090F1B)]
-                : const [Color(0xFFF9FCFE), Color(0xFFEAF2F7)],
-          ),
-        ),
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _InfoCard(
-                title: 'Template',
-                child: TextField(
-                  controller: _controller,
-                  minLines: 12,
-                  maxLines: 18,
-                  decoration: const InputDecoration(
-                    alignLabelWithHint: true,
-                    labelText: 'Share message template',
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _InfoCard(
-                title: 'Placeholders',
-                child: Column(
-                  children: _placeholders
-                      .map(
-                        (item) => _HelpRow(
-                          left: item.$1,
-                          right: item.$2,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _InfoCard(
-                title: 'Formatting Rules',
-                child: Column(
-                  children: _formattingRules
-                      .map(
-                        (item) => _HelpRow(
-                          left: item.$1,
-                          right: item.$2,
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _InfoCard(
-                title: 'Tips',
-                child: Text(
-                  'You can mix placeholders with formatting. Example: `*_{title}_*` makes the tracker title bold and italic. Keep placeholders exactly as shown, including the curly braces.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 96),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pop(context, _controller.text);
-        },
-        icon: const Icon(Icons.save_outlined),
-        label: const Text('Save Template'),
       ),
     );
   }
