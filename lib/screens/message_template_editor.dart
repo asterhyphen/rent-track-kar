@@ -5,10 +5,7 @@ import 'app_settings.dart';
 class MessageTemplateEditorPage extends StatefulWidget {
   final String initialTemplate;
 
-  const MessageTemplateEditorPage({
-    super.key,
-    required this.initialTemplate,
-  });
+  const MessageTemplateEditorPage({super.key, required this.initialTemplate});
 
   @override
   State<MessageTemplateEditorPage> createState() =>
@@ -126,12 +123,7 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
                   title: 'Placeholders',
                   child: Column(
                     children: _placeholders
-                        .map(
-                          (item) => _HelpRow(
-                            left: item.$1,
-                            right: item.$2,
-                          ),
-                        )
+                        .map((item) => _HelpRow(left: item.$1, right: item.$2))
                         .toList(),
                   ),
                 ),
@@ -140,12 +132,7 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
                   title: 'Formatting Rules',
                   child: Column(
                     children: _formattingRules
-                        .map(
-                          (item) => _HelpRow(
-                            left: item.$1,
-                            right: item.$2,
-                          ),
-                        )
+                        .map((item) => _HelpRow(left: item.$1, right: item.$2))
                         .toList(),
                   ),
                 ),
@@ -155,7 +142,9 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
                   child: Text(
                     'You can mix placeholders with formatting. Example: `*_{title}_*` makes the tracker title bold and italic. Keep placeholders exactly as shown, including the curly braces.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.72,
+                      ),
                     ),
                   ),
                 ),

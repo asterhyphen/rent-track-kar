@@ -149,10 +149,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         Colors.white.withValues(alpha: 0.10),
                         Colors.white.withValues(alpha: 0.04),
                       ]
-                    : [
-                        Colors.white,
-                        const Color(0xFFF1F7FB),
-                      ],
+                    : [Colors.white, const Color(0xFFF1F7FB)],
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
@@ -266,9 +263,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Edit message template'),
-                  subtitle: const Text(
-                    'Customise the message to be shared.',
-                  ),
+                  subtitle: const Text('Customise the message to be shared.'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _editMessageTemplate,
                 ),
@@ -411,10 +406,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ],
           ),
-          if (child is! SizedBox) ...[
-            const SizedBox(height: 14),
-            child,
-          ],
+          if (child is! SizedBox) ...[const SizedBox(height: 14), child],
         ],
       ),
     );

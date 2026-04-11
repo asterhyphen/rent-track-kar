@@ -24,10 +24,7 @@ class GlassCard extends StatelessWidget {
                   Colors.white.withValues(alpha: 0.10),
                   Colors.white.withValues(alpha: 0.03),
                 ]
-              : [
-                  Colors.white,
-                  const Color(0xFFF1F6FA),
-                ],
+              : [Colors.white, const Color(0xFFF1F6FA)],
         ),
         border: Border.all(
           color: isDark
