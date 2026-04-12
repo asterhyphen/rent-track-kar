@@ -2,7 +2,7 @@
 This is an app which helps users track group expenses like rent, electricity bill or shared subscriptions. <br><br>
 The app initially started as a vibecoded mess + a single prompt and has went through multiple revisions and this is currently the version it is sitting on.
 
-<img src ="/assets/Demo.png">
+<img src ="/assets/Demo.png" zoom=0.7>
 
 # How to use
 - Create a trackkar and select your required options.
