@@ -1,36 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
+import '../providers/app_settings_provider.dart';
 import '../services/notification_service.dart';
 import '../widgets/app_alert.dart';
 import 'app_settings.dart';
 import 'message_template_editor.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   late final Box<dynamic> box;
-  late AppSettings settings;
 
   @override
   void initState() {
     super.initState();
     box = Hive.box('app');
-    settings = AppSettings.fromMap(box.get('settings'));
   }
 
-  void _save(AppSettings value) {
-    setState(() => settings = value);
-    box.put('settings', value.toMap());
-    NotificationService.instance.syncForAllTrackers(box);
+  Future<void> _save(AppSettings value) async {
+    await ref.read(appSettingsProvider.notifier).save(value);
   }
 
   Future<void> _editMessageTemplate() async {
+    final settings = ref.read(appSettingsProvider);
     final updatedTemplate =
         await Navigator.push<String>(
           context,
@@ -44,7 +43,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (!mounted) return;
     if (updatedTemplate.trim().isEmpty) return;
-    _save(settings.copyWith(messageTemplate: updatedTemplate));
+    await _save(settings.copyWith(messageTemplate: updatedTemplate));
+    if (!mounted) return;
     showAppAlert(context, message: 'Message template updated.');
   }
 
@@ -91,8 +91,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _setNotificationsEnabled(bool enabled) async {
+    final settings = ref.read(appSettingsProvider);
+
     if (!enabled) {
-      _save(settings.copyWith(notificationsEnabled: false));
+      await _save(settings.copyWith(notificationsEnabled: false));
+      if (!mounted) return;
       showAppAlert(context, message: 'Due reminders turned off.');
       return;
     }
@@ -111,7 +114,8 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
-    _save(settings.copyWith(notificationsEnabled: true));
+    await _save(settings.copyWith(notificationsEnabled: true));
+    if (!mounted) return;
     showAppAlert(
       context,
       message:
@@ -122,6 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(appSettingsProvider);
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
@@ -231,8 +236,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 selected: {settings.themeMode},
                 multiSelectionEnabled: false,
                 showSelectedIcon: false,
-                onSelectionChanged: (selected) {
-                  _save(settings.copyWith(themeMode: selected.first));
+                onSelectionChanged: (selected) async {
+                  await _save(settings.copyWith(themeMode: selected.first));
                 },
               ),
             ),
@@ -249,8 +254,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   value: settings.confirmDelete,
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Confirm before deleting tracker'),
-                  onChanged: (value) {
-                    _save(settings.copyWith(confirmDelete: value));
+                  onChanged: (value) async {
+                    await _save(settings.copyWith(confirmDelete: value));
+                    if (!context.mounted) return;
                     showAppAlert(
                       context,
                       message: value
@@ -300,8 +306,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   divisions: 6,
                   value: settings.reminderDaysBefore.toDouble(),
                   onChanged: settings.notificationsEnabled
-                      ? (value) {
-                          _save(
+                      ? (value) async {
+                          await _save(
                             settings.copyWith(
                               reminderDaysBefore: value.round(),
                             ),
