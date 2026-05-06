@@ -22,22 +22,36 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _editMessageTemplate() async {
     final settings = ref.read(appSettingsProvider);
-    final updatedTemplate =
-        await Navigator.push<String>(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MessageTemplateEditorPage(
-              initialTemplate: settings.messageTemplate,
-            ),
-          ),
-        ) ??
-        '';
+    final updatedTemplates = await Navigator.push<MessageTemplateEditResult>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MessageTemplateEditorPage(
+          initialTemplate: settings.messageTemplate,
+          initialAllPaidTemplate: settings.allPaidMessageTemplate,
+        ),
+      ),
+    );
 
     if (!mounted) return;
-    if (updatedTemplate.trim().isEmpty) return;
-    await _save(settings.copyWith(messageTemplate: updatedTemplate));
+    if (updatedTemplates == null) return;
+    if (updatedTemplates.messageTemplate.trim().isEmpty ||
+        updatedTemplates.allPaidMessageTemplate.trim().isEmpty) {
+      showAppAlert(
+        context,
+        message: 'Both message templates need some text.',
+        icon: Icons.info_outline,
+        tone: AppAlertTone.info,
+      );
+      return;
+    }
+    await _save(
+      settings.copyWith(
+        messageTemplate: updatedTemplates.messageTemplate,
+        allPaidMessageTemplate: updatedTemplates.allPaidMessageTemplate,
+      ),
+    );
     if (!mounted) return;
-    showAppAlert(context, message: 'Message template updated.');
+    showAppAlert(context, message: 'Message templates updated.');
   }
 
   Future<void> _clearMonthlyData() async {
@@ -250,7 +264,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text('Edit message template'),
-                  subtitle: const Text('Customise the message to be shared.'),
+                  subtitle: const Text(
+                    'Customise pending and all-paid share messages.',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _editMessageTemplate,
                 ),

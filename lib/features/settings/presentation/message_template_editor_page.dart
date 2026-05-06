@@ -2,10 +2,25 @@ import 'package:flutter/material.dart';
 
 import '../domain/app_settings.dart';
 
+class MessageTemplateEditResult {
+  final String messageTemplate;
+  final String allPaidMessageTemplate;
+
+  const MessageTemplateEditResult({
+    required this.messageTemplate,
+    required this.allPaidMessageTemplate,
+  });
+}
+
 class MessageTemplateEditorPage extends StatefulWidget {
   final String initialTemplate;
+  final String initialAllPaidTemplate;
 
-  const MessageTemplateEditorPage({super.key, required this.initialTemplate});
+  const MessageTemplateEditorPage({
+    super.key,
+    required this.initialTemplate,
+    required this.initialAllPaidTemplate,
+  });
 
   @override
   State<MessageTemplateEditorPage> createState() =>
@@ -14,10 +29,13 @@ class MessageTemplateEditorPage extends StatefulWidget {
 
 class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
   late final TextEditingController _controller;
+  late final TextEditingController _allPaidController;
   late final String _initialTemplate;
+  late final String _initialAllPaidTemplate;
 
   static const _placeholders = [
     ('{title}', 'Tracker title'),
+    ('{status}', 'Payment status'),
     ('{dueDate}', 'Due date in day/month/year'),
     ('{daysRemaining}', 'Days left until due date'),
     ('{total}', 'Total amount'),
@@ -41,12 +59,17 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
   void initState() {
     super.initState();
     _initialTemplate = widget.initialTemplate;
+    _initialAllPaidTemplate = widget.initialAllPaidTemplate;
     _controller = TextEditingController(text: widget.initialTemplate);
+    _allPaidController = TextEditingController(
+      text: widget.initialAllPaidTemplate,
+    );
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _allPaidController.dispose();
     super.dispose();
   }
 
@@ -85,6 +108,8 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
             TextButton(
               onPressed: () {
                 _controller.text = AppSettings.defaultMessageTemplate;
+                _allPaidController.text =
+                    AppSettings.defaultAllPaidMessageTemplate;
                 setState(() {});
               },
               child: const Text('Reset'),
@@ -106,14 +131,28 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
               padding: const EdgeInsets.all(16),
               children: [
                 _InfoCard(
-                  title: 'Template',
+                  title: 'Pending Template',
                   child: TextField(
                     controller: _controller,
-                    minLines: 12,
-                    maxLines: 18,
+                    minLines: 10,
+                    maxLines: 16,
                     decoration: const InputDecoration(
                       alignLabelWithHint: true,
-                      labelText: 'Share message template',
+                      labelText: 'Share message when payments are pending',
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _InfoCard(
+                  title: 'All Paid Template',
+                  child: TextField(
+                    controller: _allPaidController,
+                    minLines: 8,
+                    maxLines: 14,
+                    decoration: const InputDecoration(
+                      alignLabelWithHint: true,
+                      labelText: 'Share message when everyone has paid',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -155,7 +194,13 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
-            Navigator.pop(context, _controller.text);
+            Navigator.pop(
+              context,
+              MessageTemplateEditResult(
+                messageTemplate: _controller.text,
+                allPaidMessageTemplate: _allPaidController.text,
+              ),
+            );
           },
           icon: const Icon(Icons.save_outlined),
           label: const Text('Save Template'),
@@ -164,7 +209,9 @@ class _MessageTemplateEditorPageState extends State<MessageTemplateEditorPage> {
     );
   }
 
-  bool get _hasUnsavedChanges => _controller.text != _initialTemplate;
+  bool get _hasUnsavedChanges =>
+      _controller.text != _initialTemplate ||
+      _allPaidController.text != _initialAllPaidTemplate;
 
   Future<bool?> _confirmDiscardChanges() {
     return showDialog<bool>(

@@ -233,6 +233,8 @@ class _CyclePageState extends ConsumerState<CyclePage> {
       ..sort();
     final pendingUsers = tracker.users.where((u) => paid[u] != true).toList()
       ..sort();
+    final allPaid =
+        tracker.users.isNotEmpty && paidUsers.length == tracker.users.length;
 
     final now = DateTime.now();
     final daysRemaining = due!
@@ -240,6 +242,7 @@ class _CyclePageState extends ConsumerState<CyclePage> {
         .inDays;
     final replacements = <String, String>{
       '{title}': tracker.title,
+      '{status}': allPaid ? 'All paid' : 'Pending',
       '{dueDate}': '${due!.day}/${due!.month}/${due!.year}',
       '{daysRemaining}': '$daysRemaining',
       '{total}': '$total',
@@ -252,7 +255,9 @@ class _CyclePageState extends ConsumerState<CyclePage> {
       '{pendingUsers}': pendingUsers.isEmpty ? '-' : pendingUsers.join('\n'),
     };
 
-    var template = settings.messageTemplate;
+    var template = allPaid
+        ? settings.allPaidMessageTemplate
+        : settings.messageTemplate;
     replacements.forEach((key, value) {
       template = template.replaceAll(key, value);
     });
