@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import '../services/notification_service.dart';
-import '../widgets/app_alert.dart';
-import '../widgets/glass_card.dart';
-import 'app_settings.dart';
-import 'models.dart';
 
-class CyclePage extends StatefulWidget {
+import '../../../core/widgets/app_alert.dart';
+import '../../../core/widgets/glass_card.dart';
+import '../../settings/application/app_settings_provider.dart';
+import '../application/trackers_provider.dart';
+import '../domain/tracker.dart';
+
+class CyclePage extends ConsumerStatefulWidget {
   final String trackerId;
   const CyclePage({super.key, required this.trackerId});
 
   @override
-  State<CyclePage> createState() => _CyclePageState();
+  ConsumerState<CyclePage> createState() => _CyclePageState();
 }
 
-class _CyclePageState extends State<CyclePage> {
-  final box = Hive.box('app');
-
+class _CyclePageState extends ConsumerState<CyclePage> {
   late Tracker tracker;
   late Map<String, bool> paid;
   int total = 0;
@@ -36,14 +35,14 @@ class _CyclePageState extends State<CyclePage> {
       for (final user in tracker.users) {
         paid[user] = value;
       }
-      persist();
     });
+    persist();
   }
 
   @override
   void initState() {
     super.initState();
-    tracker = Tracker.fromMap(box.get('trackkars')[widget.trackerId]);
+    tracker = ref.read(trackersProvider.notifier).byId(widget.trackerId)!;
 
     tracker = tracker.copyWith(
       users: List<String>.from(tracker.users)
@@ -52,7 +51,9 @@ class _CyclePageState extends State<CyclePage> {
 
     paid = {for (var u in tracker.users) u: false};
 
-    final saved = box.get('${tracker.id}_$monthKey');
+    final saved = ref
+        .read(monthlyRecordsProvider.notifier)
+        .recordFor(tracker.id, monthKey);
     if (saved != null) {
       paid = Map<String, bool>.from(saved['paid']);
       total = saved['total'];
@@ -64,14 +65,19 @@ class _CyclePageState extends State<CyclePage> {
     totalController = TextEditingController(text: total.toString());
   }
 
-  void persist() {
-    box.put('${tracker.id}_$monthKey', {'paid': paid, 'total': total});
+  Future<void> persist() async {
+    await ref
+        .read(monthlyRecordsProvider.notifier)
+        .save(
+          trackerId: tracker.id,
+          monthKey: monthKey,
+          paid: paid,
+          total: total,
+        );
   }
 
-  void persistTracker() {
-    final all = box.get('trackkars');
-    all[tracker.id] = tracker.toMap();
-    box.put('trackkars', all);
+  Future<void> persistTracker() async {
+    await ref.read(trackersProvider.notifier).save(tracker);
   }
 
   void openEditTracker() {
@@ -186,7 +192,7 @@ class _CyclePageState extends State<CyclePage> {
 
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   setState(() {
                     tracker = tracker.copyWith(
                       title: titleCtrl.text,
@@ -202,9 +208,9 @@ class _CyclePageState extends State<CyclePage> {
                     total = tracker.amount ?? total;
                   });
 
-                  persist();
-                  persistTracker();
-                  NotificationService.instance.syncForAllTrackers(box);
+                  await persist();
+                  await persistTracker();
+                  if (!context.mounted) return;
                   showAppAlert(context, message: 'Tracker updated.');
                   Navigator.pop(context);
                 },
@@ -218,7 +224,7 @@ class _CyclePageState extends State<CyclePage> {
   }
 
   String message() {
-    final settings = AppSettings.fromMap(box.get('settings'));
+    final settings = ref.read(appSettingsProvider);
     final per = tracker.users.isEmpty
         ? 0
         : (total / tracker.users.length).ceil();

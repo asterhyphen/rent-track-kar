@@ -1,12 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
-import '../screens/app_settings.dart';
-import '../services/notification_service.dart';
-
-final appBoxProvider = Provider<Box<dynamic>>((ref) {
-  return Hive.box('app');
-});
+import '../../../core/services/notification_service.dart';
+import '../../../core/storage/app_box_provider.dart';
+import '../domain/app_settings.dart';
 
 final appSettingsProvider = NotifierProvider<AppSettingsNotifier, AppSettings>(
   AppSettingsNotifier.new,

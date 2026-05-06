@@ -1,35 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../services/notification_service.dart';
-import '../widgets/app_alert.dart';
-import '../widgets/glass_card.dart';
-import 'models.dart';
+import '../../../core/widgets/app_alert.dart';
+import '../../../core/widgets/glass_card.dart';
+import '../application/trackers_provider.dart';
+import '../domain/tracker.dart';
 
-class ArchivePage extends StatefulWidget {
+class ArchivePage extends ConsumerStatefulWidget {
   const ArchivePage({super.key});
 
   @override
-  State<ArchivePage> createState() => _ArchivePageState();
+  ConsumerState<ArchivePage> createState() => _ArchivePageState();
 }
 
-class _ArchivePageState extends State<ArchivePage> {
-  final box = Hive.box('app');
-
+class _ArchivePageState extends ConsumerState<ArchivePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final raw = box.get('trackkars', defaultValue: {}) as Map;
-    final trackkars =
-        raw.values
-            .map((e) => Tracker.fromMap(e))
-            .where((tracker) => tracker.archived)
-            .toList()
-          ..sort(
-            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-          );
+    final trackkars = ref.watch(archivedTrackersProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Archive')),
@@ -165,24 +155,15 @@ class _ArchivePageState extends State<ArchivePage> {
     );
   }
 
-  void _updateTracker(Tracker tracker) {
-    final all = box.get('trackkars', defaultValue: {}) as Map;
-    all[tracker.id] = tracker.toMap();
-    box.put('trackkars', all);
-    NotificationService.instance.syncForAllTrackers(box);
-    setState(() {});
+  Future<void> _updateTracker(Tracker tracker) async {
+    await ref.read(trackersProvider.notifier).save(tracker);
+    if (!mounted) return;
     showAppAlert(context, message: '${tracker.title} restored.');
   }
 
-  void _deleteTracker(String trackerId) {
-    final all = box.get('trackkars', defaultValue: {}) as Map;
-    final tracker = all[trackerId] != null
-        ? Tracker.fromMap(all[trackerId])
-        : null;
-    all.remove(trackerId);
-    box.put('trackkars', all);
-    NotificationService.instance.syncForAllTrackers(box);
-    setState(() {});
+  Future<void> _deleteTracker(String trackerId) async {
+    final tracker = await ref.read(trackersProvider.notifier).delete(trackerId);
+    if (!mounted) return;
     showAppAlert(
       context,
       message: tracker == null

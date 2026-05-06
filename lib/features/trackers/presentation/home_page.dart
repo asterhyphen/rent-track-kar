@@ -1,42 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../services/notification_service.dart';
-import '../widgets/app_alert.dart';
-import '../widgets/glass_card.dart';
-import 'app_settings.dart';
-import 'cycle.dart';
-import 'models.dart';
+import '../../../core/widgets/app_alert.dart';
+import '../../../core/widgets/glass_card.dart';
+import '../../settings/application/app_settings_provider.dart';
+import '../application/trackers_provider.dart';
+import '../domain/tracker.dart';
+import 'cycle_page.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  final box = Hive.box('app');
-
+class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final raw = box.get('trackkars', defaultValue: {}) as Map;
-    final trackkars =
-        raw.values
-            .map((e) => Tracker.fromMap(e))
-            .where((tracker) => !tracker.archived)
-            .toList()
-          ..sort(
-            (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-          );
-
-    final settings = AppSettings.fromMap(box.get('settings'));
-    final monthKey = '${DateTime.now().year}-${DateTime.now().month}';
+    final trackkars = ref.watch(activeTrackersProvider);
+    final records = ref.watch(monthlyRecordsProvider);
+    final settings = ref.watch(appSettingsProvider);
+    final monthKey = ref.watch(currentMonthKeyProvider);
     final totalMembers = _userCount(trackkars);
-    final activeTrackers = _activeCount(trackkars, monthKey);
+    final activeTrackers = _activeCount(trackkars, records, monthKey);
 
     return Container(
       decoration: BoxDecoration(
@@ -139,10 +129,8 @@ class _HomePageState extends State<HomePage> {
                         itemBuilder: (c, i) {
                           final tracker = trackkars[i];
                           final monthlyKey = '${tracker.id}_$monthKey';
-                          final active = box.containsKey(monthlyKey);
-                          final monthlyData = active
-                              ? Map<String, dynamic>.from(box.get(monthlyKey))
-                              : null;
+                          final monthlyData = records[monthlyKey];
+                          final active = monthlyData != null;
                           final paidCount = monthlyData == null
                               ? 0
                               : Map<String, dynamic>.from(
@@ -183,14 +171,10 @@ class _HomePageState extends State<HomePage> {
                                     ) ??
                                     false;
                               },
-                              onDismissed: (_) {
-                                final all = box.get('trackkars');
-                                all.remove(tracker.id);
-                                box.put('trackkars', all);
-                                NotificationService.instance.syncForAllTrackers(
-                                  box,
-                                );
-                                setState(() {});
+                              onDismissed: (_) async {
+                                await ref
+                                    .read(trackersProvider.notifier)
+                                    .delete(tracker.id);
                               },
                               background: Container(
                                 alignment: Alignment.centerRight,
@@ -213,7 +197,6 @@ class _HomePageState extends State<HomePage> {
                                           CyclePage(trackerId: tracker.id),
                                     ),
                                   );
-                                  if (mounted) setState(() {});
                                 },
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,24 +367,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _updateTracker(Tracker tracker) {
-    final all = box.get('trackkars', defaultValue: {}) as Map;
-    all[tracker.id] = tracker.toMap();
-    box.put('trackkars', all);
-    NotificationService.instance.syncForAllTrackers(box);
-    setState(() {});
+  Future<void> _updateTracker(Tracker tracker) async {
+    await ref.read(trackersProvider.notifier).save(tracker);
+    if (!mounted) return;
     showAppAlert(context, message: '${tracker.title} moved to archive.');
   }
 
-  void _deleteTracker(String trackerId) {
-    final all = box.get('trackkars', defaultValue: {}) as Map;
-    final tracker = all[trackerId] != null
-        ? Tracker.fromMap(all[trackerId])
-        : null;
-    all.remove(trackerId);
-    box.put('trackkars', all);
-    NotificationService.instance.syncForAllTrackers(box);
-    setState(() {});
+  Future<void> _deleteTracker(String trackerId) async {
+    final tracker = await ref.read(trackersProvider.notifier).delete(trackerId);
+    if (!mounted) return;
     showAppAlert(
       context,
       message: tracker == null
@@ -411,8 +385,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  int _activeCount(List<Tracker> trackkars, String monthKey) {
-    return trackkars.where((t) => box.containsKey('${t.id}_$monthKey')).length;
+  int _activeCount(
+    List<Tracker> trackkars,
+    Map<String, Map<String, dynamic>> records,
+    String monthKey,
+  ) {
+    return trackkars
+        .where((t) => records.containsKey('${t.id}_$monthKey'))
+        .length;
   }
 
   int _userCount(List<Tracker> trackkars) {

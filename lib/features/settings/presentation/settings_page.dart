@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
 
-import '../providers/app_settings_provider.dart';
-import '../services/notification_service.dart';
-import '../widgets/app_alert.dart';
-import 'app_settings.dart';
-import 'message_template_editor.dart';
+import '../../../core/services/notification_service.dart';
+import '../../../core/widgets/app_alert.dart';
+import '../../trackers/application/trackers_provider.dart';
+import '../application/app_settings_provider.dart';
+import '../domain/app_settings.dart';
+import 'message_template_editor_page.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -16,14 +16,6 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  late final Box<dynamic> box;
-
-  @override
-  void initState() {
-    super.initState();
-    box = Hive.box('app');
-  }
-
   Future<void> _save(AppSettings value) async {
     await ref.read(appSettingsProvider.notifier).save(value);
   }
@@ -73,18 +65,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     if (!shouldClear) return;
 
-    final trackkars = Map<String, dynamic>.from(
-      box.get('trackkars', defaultValue: <String, dynamic>{}) as Map,
-    );
-    final trackerIds = trackkars.keys.toSet();
-
-    for (final key in box.keys.toList()) {
-      if (key is! String || key == 'trackkars' || key == 'settings') continue;
-      final idPart = key.split('_').first;
-      if (trackerIds.contains(idPart)) {
-        box.delete(key);
-      }
-    }
+    await ref.read(monthlyRecordsProvider.notifier).clearAll();
 
     if (!mounted) return;
     showAppAlert(context, message: 'Monthly records cleared.');

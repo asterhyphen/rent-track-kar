@@ -1,38 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../widgets/app_alert.dart';
-import '../widgets/glass_card.dart';
-import 'models.dart';
+import '../../../core/widgets/app_alert.dart';
+import '../../../core/widgets/glass_card.dart';
+import '../../trackers/domain/tracker.dart';
+import '../application/users_provider.dart';
 
-class UsersPage extends StatefulWidget {
+class UsersPage extends ConsumerStatefulWidget {
   const UsersPage({super.key});
 
   @override
-  State<UsersPage> createState() => _UsersPageState();
+  ConsumerState<UsersPage> createState() => _UsersPageState();
 }
 
-class _UsersPageState extends State<UsersPage> {
-  final box = Hive.box('app');
-
-  List<String> get _savedUsers {
-    final raw = box.get('savedUsers', defaultValue: <String>[]) as List;
-    return normalizeNames(raw);
-  }
-
-  List<UserGroup> get _groups {
-    final raw = box.get('userGroups', defaultValue: <String, dynamic>{}) as Map;
-    return raw.values.map((value) => UserGroup.fromMap(value)).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-  }
-
+class _UsersPageState extends ConsumerState<UsersPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final users = _savedUsers;
-    final groups = _groups;
+    final users = ref.watch(savedUsersProvider);
+    final groups = ref.watch(userGroupsProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -443,9 +431,9 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  void _saveUserFromSheet(TextEditingController controller) {
+  Future<void> _saveUserFromSheet(TextEditingController controller) async {
     final name = formatName(controller.text);
-    final users = _savedUsers;
+    final users = ref.read(savedUsersProvider);
 
     if (name.isEmpty) {
       showAppAlert(
@@ -467,15 +455,15 @@ class _UsersPageState extends State<UsersPage> {
       return;
     }
 
-    box.put('savedUsers', normalizeNames([...users, name]));
+    await ref.read(savedUsersProvider.notifier).add(name);
+    if (!mounted) return;
     Navigator.pop(context);
-    setState(() {});
     showAppAlert(context, message: '$name has been added to saved users.');
   }
 
   Future<void> _showGroupSheet({UserGroup? group}) async {
     final nameCtrl = TextEditingController(text: group?.name ?? '');
-    final savedUsers = _savedUsers;
+    final savedUsers = ref.read(savedUsersProvider);
     final selectedUsers = group == null
         ? <String>{}
         : Set<String>.from(group.members);
@@ -556,16 +544,14 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  void _saveGroupFromSheet({
+  Future<void> _saveGroupFromSheet({
     String? groupId,
     required String groupName,
     required List<String> members,
-  }) {
+  }) async {
     final name = formatName(groupName);
     final normalizedMembers = normalizeNames(members);
-    final groupsMap = Map<String, dynamic>.from(
-      box.get('userGroups', defaultValue: <String, dynamic>{}) as Map,
-    );
+    final groups = ref.read(userGroupsProvider);
 
     if (name.isEmpty) {
       showAppAlert(
@@ -587,13 +573,10 @@ class _UsersPageState extends State<UsersPage> {
       return;
     }
 
-    final alreadyExists = groupsMap.values
-        .map((value) => UserGroup.fromMap(value))
-        .any(
-          (group) =>
-              group.name.toLowerCase() == name.toLowerCase() &&
-              group.id != groupId,
-        );
+    final alreadyExists = groups.any(
+      (group) =>
+          group.name.toLowerCase() == name.toLowerCase() && group.id != groupId,
+    );
 
     if (alreadyExists) {
       showAppAlert(
@@ -608,10 +591,9 @@ class _UsersPageState extends State<UsersPage> {
     final id = groupId ?? DateTime.now().millisecondsSinceEpoch.toString();
     final group = UserGroup(id: id, name: name, members: normalizedMembers);
 
-    groupsMap[group.id] = group.toMap();
-    box.put('userGroups', groupsMap);
+    await ref.read(userGroupsProvider.notifier).save(group);
+    if (!mounted) return;
     Navigator.pop(context);
-    setState(() {});
     showAppAlert(
       context,
       message: groupId == null
@@ -620,26 +602,9 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 
-  void _deleteUser(String user) {
-    final users = _savedUsers.where((value) => value != user).toList();
-    box.put('savedUsers', users);
-
-    final groupsMap = Map<String, dynamic>.from(
-      box.get('userGroups', defaultValue: <String, dynamic>{}) as Map,
-    );
-
-    final updatedGroups = <String, dynamic>{};
-    for (final entry in groupsMap.entries) {
-      final group = UserGroup.fromMap(entry.value);
-      final remainingMembers = group.members.where((m) => m != user).toList();
-      if (remainingMembers.isEmpty) continue;
-      updatedGroups[entry.key] = group
-          .copyWith(members: normalizeNames(remainingMembers))
-          .toMap();
-    }
-
-    box.put('userGroups', updatedGroups);
-    setState(() {});
+  Future<void> _deleteUser(String user) async {
+    await ref.read(savedUsersProvider.notifier).delete(user);
+    if (!mounted) return;
     showAppAlert(context, message: '$user removed.');
   }
 
@@ -670,13 +635,9 @@ class _UsersPageState extends State<UsersPage> {
     _deleteUser(user);
   }
 
-  void _deleteGroup(String groupId, String groupName) {
-    final groupsMap = Map<String, dynamic>.from(
-      box.get('userGroups', defaultValue: <String, dynamic>{}) as Map,
-    );
-    groupsMap.remove(groupId);
-    box.put('userGroups', groupsMap);
-    setState(() {});
+  Future<void> _deleteGroup(String groupId, String groupName) async {
+    await ref.read(userGroupsProvider.notifier).delete(groupId);
+    if (!mounted) return;
     showAppAlert(context, message: '$groupName deleted.');
   }
 }

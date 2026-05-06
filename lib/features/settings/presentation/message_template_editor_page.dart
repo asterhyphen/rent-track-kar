@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'app_settings.dart';
+import '../domain/app_settings.dart';
 
 class MessageTemplateEditorPage extends StatefulWidget {
   final String initialTemplate;

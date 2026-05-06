@@ -1,11 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'providers/app_settings_provider.dart';
-import 'services/notification_service.dart';
-import 'screens/app_shell.dart';
+import 'core/services/notification_service.dart';
+import 'features/app_shell.dart';
+import 'features/settings/application/app_settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,9 +44,6 @@ class MyApp extends ConsumerWidget {
       builders: {
         TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
         TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
-        TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
       },
     );
 

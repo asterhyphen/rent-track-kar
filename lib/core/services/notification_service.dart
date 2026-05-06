@@ -4,8 +4,8 @@ import 'package:hive/hive.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import '../screens/app_settings.dart';
-import '../screens/models.dart';
+import '../../features/settings/domain/app_settings.dart';
+import '../../features/trackers/domain/tracker.dart';
 
 class NotificationService {
   NotificationService._();

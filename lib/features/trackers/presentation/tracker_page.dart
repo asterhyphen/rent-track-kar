@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../services/notification_service.dart';
-import '../widgets/app_alert.dart';
-import 'models.dart';
-import 'users.dart';
+import '../../../core/widgets/app_alert.dart';
+import '../../users/application/users_provider.dart';
+import '../../users/presentation/users_page.dart';
+import '../application/trackers_provider.dart';
+import '../domain/tracker.dart';
 
-class TrackerPage extends StatefulWidget {
+class TrackerPage extends ConsumerStatefulWidget {
   const TrackerPage({super.key});
 
   @override
-  State<TrackerPage> createState() => _TrackerPageState();
+  ConsumerState<TrackerPage> createState() => _TrackerPageState();
 }
 
-class _TrackerPageState extends State<TrackerPage> {
+class _TrackerPageState extends ConsumerState<TrackerPage> {
   final titleCtrl = TextEditingController();
   final amountCtrl = TextEditingController();
   final userCtrl = TextEditingController();
@@ -26,28 +27,11 @@ class _TrackerPageState extends State<TrackerPage> {
   String iconId = 'Bill';
   bool iconManuallySelected = false;
 
-  List<String> get _savedUsers {
-    final raw =
-        Hive.box('app').get('savedUsers', defaultValue: <String>[]) as List;
-    return normalizeNames(raw);
-  }
-
-  List<UserGroup> get _savedGroups {
-    final raw =
-        Hive.box('app').get('userGroups', defaultValue: <String, dynamic>{})
-            as Map;
-    return raw.values.map((value) => UserGroup.fromMap(value)).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-  }
-
   Future<void> _openUsersPage() async {
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const UsersPage()),
     );
-
-    if (!mounted) return;
-    setState(() {});
   }
 
   @override
@@ -89,8 +73,8 @@ class _TrackerPageState extends State<TrackerPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final savedUsers = _savedUsers;
-    final savedGroups = _savedGroups;
+    final savedUsers = ref.watch(savedUsersProvider);
+    final savedGroups = ref.watch(userGroupsProvider);
     final peopleCount = users.length;
     final baseAmount = isConstantBill ? int.tryParse(amountCtrl.text) ?? 0 : 0;
     final perHead = peopleCount == 0 ? 0 : (baseAmount / peopleCount).ceil();
@@ -577,7 +561,7 @@ class _TrackerPageState extends State<TrackerPage> {
     );
   }
 
-  void _createTracker() {
+  Future<void> _createTracker() async {
     if (titleCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a tracker name.')),
@@ -594,8 +578,6 @@ class _TrackerPageState extends State<TrackerPage> {
       return;
     }
 
-    final box = Hive.box('app');
-    // use timestamp to generate a more collision-resistant id
     final id = '${titleCtrl.text}_${DateTime.now().millisecondsSinceEpoch}';
 
     final tracker = Tracker(
@@ -610,10 +592,8 @@ class _TrackerPageState extends State<TrackerPage> {
       archived: false,
     );
 
-    final all = box.get('trackkars', defaultValue: {});
-    all[id] = tracker.toMap();
-    box.put('trackkars', all);
-    NotificationService.instance.syncForAllTrackers(box);
+    await ref.read(trackersProvider.notifier).create(tracker);
+    if (!mounted) return;
     showAppAlert(context, message: 'Tracker created.');
     Navigator.pop(context);
   }

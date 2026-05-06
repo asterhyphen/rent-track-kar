@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'archive.dart';
-import 'home.dart';
-import 'settings.dart';
-import 'tracker.dart';
-import 'users.dart';
+
+import 'settings/presentation/settings_page.dart';
+import 'trackers/presentation/archive_page.dart';
+import 'trackers/presentation/home_page.dart';
+import 'trackers/presentation/tracker_page.dart';
+import 'users/presentation/users_page.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
