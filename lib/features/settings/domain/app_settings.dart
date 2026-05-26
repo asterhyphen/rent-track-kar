@@ -21,7 +21,7 @@ _Status:_ {status}
 _Due:_ {dueDate}
 _Total:_ ₹{total} (₹{perHead} each)
 
-All payments are complete.
+All payments are complete. Bill paid.
 
 _Paid ({paidCount}; ₹{paidAmount})_
 ```
