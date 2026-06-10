@@ -289,28 +289,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                   onChanged: _setNotificationsEnabled,
                 ),
-                const SizedBox(height: 8),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    'Send reminder ${settings.reminderDaysBefore} day${settings.reminderDaysBefore == 1 ? '' : 's'} before due date',
-                  ),
-                  subtitle: const Text('Customise when to send reminders.'),
-                ),
-                Slider(
-                  min: 1,
-                  max: 7,
-                  divisions: 6,
-                  value: settings.reminderDaysBefore.toDouble(),
-                  onChanged: settings.notificationsEnabled
-                      ? (value) async {
+                _animatedReveal(
+                  visible: settings.notificationsEnabled,
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 8),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          'Send reminder ${settings.reminderDaysBefore} day${settings.reminderDaysBefore == 1 ? '' : 's'} before due date',
+                        ),
+                        subtitle: const Text(
+                          'Customise when to send reminders.',
+                        ),
+                      ),
+                      Slider(
+                        min: 1,
+                        max: 7,
+                        divisions: 6,
+                        value: settings.reminderDaysBefore.toDouble(),
+                        onChanged: (value) async {
                           await _save(
                             settings.copyWith(
                               reminderDaysBefore: value.round(),
                             ),
                           );
-                        }
-                      : null,
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -341,6 +348,33 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _animatedReveal({required bool visible, required Widget child}) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 280),
+      reverseDuration: const Duration(milliseconds: 220),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) {
+        return ClipRect(
+          child: FadeTransition(
+            opacity: animation,
+            child: SizeTransition(
+              sizeFactor: animation,
+              axisAlignment: -1,
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: visible
+          ? KeyedSubtree(
+              key: const ValueKey('notification-options'),
+              child: child,
+            )
+          : const SizedBox.shrink(key: ValueKey('notification-options-hidden')),
     );
   }
 
