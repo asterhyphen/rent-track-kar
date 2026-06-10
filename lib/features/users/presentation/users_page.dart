@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/app_alert.dart';
 import '../../../core/widgets/glass_card.dart';
+import '../../trackers/application/trackers_provider.dart';
 import '../../trackers/domain/tracker.dart';
 import '../application/users_provider.dart';
 
@@ -590,10 +591,75 @@ class _UsersPageState extends ConsumerState<UsersPage> {
 
     final id = groupId ?? DateTime.now().millisecondsSinceEpoch.toString();
     final group = UserGroup(id: id, name: name, members: normalizedMembers);
+    final previousGroup = groupId == null
+        ? null
+        : groups.where((group) => group.id == groupId).firstOrNull;
+    final addedMembers = previousGroup == null
+        ? const <String>[]
+        : normalizedMembers
+              .where((member) => !previousGroup.members.contains(member))
+              .toList();
+    final matchingTrackers = previousGroup == null || addedMembers.isEmpty
+        ? const <Tracker>[]
+        : ref
+              .read(trackersProvider)
+              .where(
+                (tracker) =>
+                    !tracker.archived &&
+                    previousGroup.members.every(tracker.users.contains) &&
+                    addedMembers.any(
+                      (member) => !tracker.users.contains(member),
+                    ),
+              )
+              .toList();
 
     await ref.read(userGroupsProvider.notifier).save(group);
     if (!mounted) return;
     Navigator.pop(context);
+
+    if (matchingTrackers.isNotEmpty) {
+      final shouldUpdate =
+          await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Update existing trackers?'),
+              content: Text(
+                '${addedMembers.join(', ')} ${addedMembers.length == 1 ? 'was' : 'were'} added to $name.\n\n'
+                'Add ${addedMembers.length == 1 ? 'this person' : 'these people'} to ${matchingTrackers.length} matching active tracker${matchingTrackers.length == 1 ? '' : 's'}?\n\n'
+                '${matchingTrackers.map((tracker) => tracker.title).join(', ')}',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Not Now'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Update Trackers'),
+                ),
+              ],
+            ),
+          ) ??
+          false;
+
+      if (shouldUpdate) {
+        await ref
+            .read(trackersProvider.notifier)
+            .addUsersToTrackers(
+              matchingTrackers.map((tracker) => tracker.id),
+              addedMembers,
+            );
+        if (!mounted) return;
+        showAppAlert(
+          context,
+          message:
+              '${matchingTrackers.length} tracker${matchingTrackers.length == 1 ? '' : 's'} updated.',
+        );
+        return;
+      }
+    }
+
+    if (!mounted) return;
     showAppAlert(
       context,
       message: groupId == null

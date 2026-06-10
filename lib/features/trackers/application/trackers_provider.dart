@@ -62,6 +62,33 @@ class TrackersNotifier extends Notifier<List<Tracker>> {
     await NotificationService.instance.syncForAllTrackers(_box);
   }
 
+  Future<void> addUsersToTrackers(
+    Iterable<String> trackerIds,
+    Iterable<String> users,
+  ) async {
+    final ids = trackerIds.toSet();
+    final newUsers = normalizeNames(users);
+    if (ids.isEmpty || newUsers.isEmpty) return;
+
+    final all = Map<String, dynamic>.from(
+      _box.get('trackkars', defaultValue: <String, dynamic>{}) as Map,
+    );
+
+    for (final id in ids) {
+      final raw = all[id];
+      if (raw is! Map) continue;
+
+      final tracker = Tracker.fromMap(raw);
+      all[id] = tracker
+          .copyWith(users: [...tracker.users, ...newUsers])
+          .toMap();
+    }
+
+    await _box.put('trackkars', all);
+    state = _readTrackers();
+    await NotificationService.instance.syncForAllTrackers(_box);
+  }
+
   Future<Tracker?> delete(String trackerId) async {
     final all = Map<String, dynamic>.from(
       _box.get('trackkars', defaultValue: <String, dynamic>{}) as Map,
